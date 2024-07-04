@@ -120,15 +120,7 @@ G4VPhysicalVolume *DRsimDetectorConstruction::Construct() {
                           0 * deg, 360. * deg);
   gluebox = new G4Box("gluebox", (fGlue_thickness / 2) * mm,
                       (fFiber_hori_dis / 2) * mm, fTowerDepth / 2.);
-  // tGlueSubtraction = new G4SubtractionSolid("glueCladSubt", gluebox,
-  // fiberClad,
-  //                                           0, G4ThreeVector(.0, .0, .0));
-  // G4LogicalVolume *lvGlueSubtraction = new G4LogicalVolume(
-  //     tGlueSubtraction, FindMaterial("Gelatin"), "glueSample");
-  // new G4PVPlacement(0, G4ThreeVector(0, 1100, 0), lvGlueSubtraction,
-  //                   std::string(name) + "_glue_sample", worldLogical, false,
-  //                   0, checkOverlaps);
-  // lvGlueSubtraction->SetVisAttributes(fVisAttrBlue);
+  tGlueSubtraction = new G4SubtractionSolid("glueCladSubt", gluebox, fiberClad, 0, G4ThreeVector(.0, .0, .0));
 
   dimCalc = new dimensionCalc();
   dimCalc->SetFrontL(fFrontL);
