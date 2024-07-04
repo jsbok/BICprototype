@@ -2,11 +2,6 @@ project(analysis)
 
 find_package(ROOT REQUIRED)
 
-set(CMAKE_MACOSX_RPATH 1)
-list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_PREFIX_PATH}/lib)
-list(APPEND CMAKE_INSTALL_RPATH /opt/homebrew/lib/root)
-list(APPEND CMAKE_INSTALL_RPATH /Users/hseong/eic/DRC_generic_forEIC/install/lib)
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   # ${FASTJET_DIR}/include

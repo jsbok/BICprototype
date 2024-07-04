@@ -4,24 +4,23 @@ Repository for GEANT4 simulation &amp; analysis of BIC TB simulation.
 ## How-to
 ### Prerequisite
     
-Geant4 10.5.0 or 10.6.0 confirmed on MacOS 14.4.1\
-Simulation on Geant4 with higher version produce invalid output.\
-Recommend to use it only for geometry visualization.
-
-#### For local installation
+#### Geant4
+Geant4 10.5.0 or 10.6.0 work on MacOS 14.4.1\
+Simulation on Geant4 with higher version produce invalid simulation output.\
+Recommend to use recent version only for geometry visualization.
+\
+###### For local installation
 Geant4 must be built with cmake option `-DGEANT4_INSTALL_DATA=ON` for simulation.
 \
 For more information, Refer to https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/
 \
-ROOT 6.30 confirmed on MacOS 14.4.1
-Other versions may work.
-\
-Other prerequisites not listed here can exists.
+#### CERN ROOT
+any recent version may work.
 
 ### Compile
 
-    export Geant4_DIR=/dir/to/geant4-install
-    export ROOT_DIR=/dir/to/ROOT
+    export Geant4_DIR=/dir/to/geant4-install # Geant4 install directory
+    export ROOT_DIR=/dir/to/ROOT # ROOT library(libROOTHist.so, ...) directory
     
     source setup.sh
     mkdir build && cd build
@@ -32,11 +31,12 @@ Other prerequisites not listed here can exists.
 ### Simulation
     
     cd install
-    ./bin/DRsim 
+    ./bin/DRsim [geant4-macro]
 This will launch interactive console and visualizatino window if enabled.
+You can manually control geant4 with the console or use predefined geant4 macro like 'run_ele.mac'.
 
 #### Visualization
-You can use below Geant4 commands to control visualization.
+You can use below Geant4 commands in the console to control visualization.
 \
 `/vis/viewer/zoom N` N times magnification. (N can be less than 1)\
 `/vis/viewer/set/targetPoint X Y Z unit` set center coordinate of rotation and zoom. (unit: m, mm, ...)\
@@ -49,4 +49,4 @@ You can use below Geant4 commands to control visualization.
 
 e.g.)
 
-    ./bin/analysis /home/USER/20GeV_ele_data 0 20
+    ./bin/analysis ./output 0 20
