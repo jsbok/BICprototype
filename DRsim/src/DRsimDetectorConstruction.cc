@@ -114,37 +114,37 @@ G4VPhysicalVolume *DRsimDetectorConstruction::Construct() {
 
   fiberUnit = new G4Box("fiber_SQ", (fFiberUnitH / 2) * mm, (1. / 2) * mm,
                         (fTowerDepth / 2) * mm);
-  fiberClad = new G4Tubs("fiber", 0, clad_S_rMax, (fTowerDepth + 6) / 2., 0 * deg,
-                         360. * deg);
-  fiberCoreS = new G4Tubs("fiberS", 0, core_S_rMax, (fTowerDepth + 6) / 2., 0 * deg,
-                          360. * deg);
+  fiberClad = new G4Tubs("fiber", 0, clad_S_rMax, (fTowerDepth + 6) / 2.,
+                         0 * deg, 360. * deg);
+  fiberCoreS = new G4Tubs("fiberS", 0, core_S_rMax, (fTowerDepth + 6) / 2.,
+                          0 * deg, 360. * deg);
   gluebox = new G4Box("gluebox", (fGlue_thickness / 2) * mm,
                       (fFiber_hori_dis / 2) * mm, fTowerDepth / 2.);
-  tGlueSubtraction = new G4SubtractionSolid("glueCladSubt", gluebox, fiberClad,
-                                            0, G4ThreeVector(.0, .0, .0));
-G4LogicalVolume* lvGlueSubtraction = new G4LogicalVolume(
-            tGlueSubtraction, FindMaterial("Gelatin"),
-            "glueSample");
-new G4PVPlacement(0, G4ThreeVector(0, 1100, 0), lvGlueSubtraction,
-                  std::string(name) + "_glue_sample", worldLogical, false,
-                  0, checkOverlaps);
-lvGlueSubtraction->SetVisAttributes(fVisAttrBlue);
+  // tGlueSubtraction = new G4SubtractionSolid("glueCladSubt", gluebox,
+  // fiberClad,
+  //                                           0, G4ThreeVector(.0, .0, .0));
+  // G4LogicalVolume *lvGlueSubtraction = new G4LogicalVolume(
+  //     tGlueSubtraction, FindMaterial("Gelatin"), "glueSample");
+  // new G4PVPlacement(0, G4ThreeVector(0, 1100, 0), lvGlueSubtraction,
+  //                   std::string(name) + "_glue_sample", worldLogical, false,
+  //                   0, checkOverlaps);
+  // lvGlueSubtraction->SetVisAttributes(fVisAttrBlue);
 
-dimCalc = new dimensionCalc();
-dimCalc->SetFrontL(fFrontL);
-dimCalc->SetTower_height(fTowerDepth);
-dimCalc->SetPMTT(PMTT);
-dimCalc->SetNofModules(fNofModules);
-dimCalc->SetNofRow(fNofRow);
-dimCalc->SetModule_height(fModuleH);
-dimCalc->SetModule_width(fModuleW);
+  dimCalc = new dimensionCalc();
+  dimCalc->SetFrontL(fFrontL);
+  dimCalc->SetTower_height(fTowerDepth);
+  dimCalc->SetPMTT(PMTT);
+  dimCalc->SetNofModules(fNofModules);
+  dimCalc->SetNofRow(fNofRow);
+  dimCalc->SetModule_height(fModuleH);
+  dimCalc->SetModule_width(fModuleW);
 
-ModuleBuild(ModuleLogical, PMTGLogical, PMTfilterLogical, PMTcellLogical,
-            PMTcathLogical, fiberUnitIntersection, fiberCladIntersection,
-            fiberCoreIntersection, fModuleProp);
+  ModuleBuild(ModuleLogical, PMTGLogical, PMTfilterLogical, PMTcellLogical,
+              PMTcathLogical, fiberUnitIntersection, fiberCladIntersection,
+              fiberCoreIntersection, fModuleProp);
 
-delete dimCalc;
-return worldPhysical;
+  delete dimCalc;
+  return worldPhysical;
 }
 
 void DRsimDetectorConstruction::ConstructSDandField() {
@@ -339,7 +339,7 @@ void DRsimDetectorConstruction::FiberImplement(
             "glue", tGlueSubtraction, module, 0,
             G4ThreeVector(-fFiberX.at(fiberId), -fFiberY.at(fiberId), 0.));
         glueIntersection__[i].push_back(new G4LogicalVolume(
-            tGlueIntersection, FindMaterial("Gelatin"),
+            tGlueIntersection, FindMaterial("G4_Galactic"),
             std::string(name) + "_glue_" + std::to_string(fiberId)));
         new G4PVPlacement(
             0, G4ThreeVector(fFiberX.at(fiberId), fFiberY.at(fiberId), 0),
