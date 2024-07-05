@@ -29,8 +29,9 @@ using namespace std;
 G4ThreadLocal DRsimMagneticField *DRsimDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager *DRsimDetectorConstruction::fFieldMgr = 0;
 
-int DRsimDetectorConstruction::fNofRow = 1;
-int DRsimDetectorConstruction::fNofModules = fNofRow * fNofRow;
+int DRsimDetectorConstruction::fNofRow = 4;
+int DRsimDetectorConstruction::fNofCol = 4;
+int DRsimDetectorConstruction::fNofModules = fNofRow * fNofCol;
 
 DRsimDetectorConstruction::DRsimDetectorConstruction()
     : G4VUserDetectorConstruction(), fMessenger(0), fMaterials(NULL) {
@@ -87,7 +88,7 @@ G4VPhysicalVolume *DRsimDetectorConstruction::Construct() {
   G4LogicalVolumeStore::GetInstance()->Clean();
   G4SolidStore::GetInstance()->Clean();
 
-  checkOverlaps = true;
+  checkOverlaps = false;
 
   G4VSolid *worldSolid = new G4Box("worldBox", 10. * m, 10. * m, 10. * m);
   worldLogical = new G4LogicalVolume(worldSolid, FindMaterial("G4_Galactic"),
@@ -128,6 +129,7 @@ G4VPhysicalVolume *DRsimDetectorConstruction::Construct() {
   dimCalc->SetPMTT(PMTT);
   dimCalc->SetNofModules(fNofModules);
   dimCalc->SetNofRow(fNofRow);
+  dimCalc->SetNofCol(fNofCol);
   dimCalc->SetModule_height(fModuleH);
   dimCalc->SetModule_width(fModuleW);
 
