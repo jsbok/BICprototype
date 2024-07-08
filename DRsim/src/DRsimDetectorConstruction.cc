@@ -186,7 +186,6 @@ void DRsimDetectorConstruction::ModuleBuild(
 
     new G4PVPlacement(zRot, dimCalc->GetOrigin(i), ModuleLogical_[i], moduleName,
                       worldLogical, false, 0, checkOverlaps);
-    ModuleLogical_[i]->SetVisAttributes(fVisAttrBlue);
 
     if (doPMT) {
       dimCalc->SetisModule(false);

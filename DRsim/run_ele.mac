@@ -20,6 +20,6 @@
 /gun/energy 1 GeV
 /run/beamOn 1
 
-/vis/viewer/zoom 2500
-/vis/viewer/set/targetPoint 0 1016 0 mm
+/vis/viewer/zoom 250
+/vis/viewer/set/targetPoint 0 1075 0 mm
 /vis/viewer/set/viewpointThetaPhi 0 90
