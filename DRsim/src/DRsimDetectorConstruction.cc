@@ -172,6 +172,9 @@ void DRsimDetectorConstruction::ModuleBuild(
     std::vector<G4LogicalVolume *> fiberCoreIntersection_[],
     std::vector<DRsimInterface::DRsimModuleProperty> &ModuleProp_) {
 
+  G4RotationMatrix* zRot = new G4RotationMatrix;
+  zRot->rotateZ(M_PI/2.*rad);
+
   for (int i = 0; i < fNofModules; i++) {
     moduleName = setModuleName(i);
 
@@ -180,8 +183,10 @@ void DRsimDetectorConstruction::ModuleBuild(
                        (fTowerDepth / 2.) * mm);
     ModuleLogical_[i] =
         new G4LogicalVolume(module, FindMaterial("Lead"), moduleName);
-    new G4PVPlacement(0, dimCalc->GetOrigin(i), ModuleLogical_[i], moduleName,
+
+    new G4PVPlacement(zRot, dimCalc->GetOrigin(i), ModuleLogical_[i], moduleName,
                       worldLogical, false, 0, checkOverlaps);
+    ModuleLogical_[i]->SetVisAttributes(fVisAttrBlue);
 
     if (doPMT) {
       dimCalc->SetisModule(false);
@@ -191,9 +196,9 @@ void DRsimDetectorConstruction::ModuleBuild(
           new G4LogicalVolume(pmtg, FindMaterial("G4_AIR"), moduleName);
       PMTGLogical_[2 * i + 1] =
           new G4LogicalVolume(pmtg, FindMaterial("G4_AIR"), moduleName);
-      new G4PVPlacement(0, dimCalc->GetOrigin_PMTG(2 * i), PMTGLogical_[2 * i],
+      new G4PVPlacement(zRot, dimCalc->GetOrigin_PMTG(2 * i), PMTGLogical_[2 * i],
                         moduleName, worldLogical, false, 0, checkOverlaps);
-      new G4PVPlacement(0, dimCalc->GetOrigin_PMTG(2 * i + 1),
+      new G4PVPlacement(zRot, dimCalc->GetOrigin_PMTG(2 * i + 1),
                         PMTGLogical_[2 * i + 1], moduleName, worldLogical,
                         false, 0, checkOverlaps);
     }

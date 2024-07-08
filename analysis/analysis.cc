@@ -12,6 +12,7 @@
 #include "TString.h"
 #include "TLorentzVector.h"
 #include "TGraph.h"
+#include "TLine.h"
 
 #include <iostream>
 #include <string>
@@ -57,8 +58,21 @@ int main(int argc, char* argv[]) {
   TH1F* tNhit_S = new TH1F("nHits_S",";p.e.;n",200,0.,200.);
   tNhit_S->Sumw2(); tNhit_S->SetLineColor(kRed); tNhit_S->SetLineWidth(2);
 
-  TH2D* t2DhitS = new TH2D("2D Hit S", "", 420, -0.5, 419.5, 420, -0.5, 419.5); t2DhitS->Sumw2(); t2DhitS->SetStats(0);
+  int nLayers = 22;
+  int nFibers = 24;
 
+  int nRows = 3;
+  int nColumns = 5;
+
+  double xBins = nFibers * nColumns;
+  double xLower = 0;
+  double xUpper = nFibers * nColumns;
+  double yBins = nLayers * nRows;
+  double yLower = 0;
+  double yUpper = nLayers * nRows;
+  TH2D* t2DhitS = new TH2D("2D Hit S", "", xBins, xLower, xUpper, yBins, yLower, yUpper); t2DhitS->Sumw2(); t2DhitS->SetStats(0);
+
+  int nMaxSipmCount = 0;
   unsigned int entries = drInterface->entries();
   while (drInterface->numEvt() < entries) {
     if (drInterface->numEvt() % 100 == 0) printf("Analyzing %dth event ...\n", drInterface->numEvt());
@@ -93,15 +107,17 @@ int main(int argc, char* argv[]) {
       int moduleNum = tower->ModuleNum;
       for (auto sipm = tower->SiPMs.begin(); sipm != tower->SiPMs.end(); ++sipm) {
         isLeft = sipm->isleft;
-        int plateNum = sipm->x; int fiberNum = sipm->y; 
+        int plateNum = sipm->y; int fiberNum = 24 - sipm->x;
 
         tNhit_S->Fill(sipm->count);
         nHitS += sipm->count;
+        if (nMaxSipmCount < sipm->count)
+          nMaxSipmCount = sipm->count;
         
         if (isLeft==0) {nHitS_left += sipm->count;}
         else {nHitS_right += sipm->count;}
 
-        t2DhitS->Fill(60*(moduleNum%7)+fiberNum, 60*(moduleNum/7)+plateNum, sipm->count);
+        t2DhitS->Fill(nFibers*(moduleNum%nColumns)+fiberNum, nLayers*(moduleNum/nColumns)+plateNum, sipm->count);
         for (const auto timepair : sipm->timeStruct) {
           tT_S->Fill(timepair.first.first+0.05,timepair.second);
           if (isLeft==0) {tT_S_left->Fill(timepair.first.first+0.05,timepair.second);}
@@ -134,7 +150,17 @@ int main(int argc, char* argv[]) {
   tHit_S_left->Draw("Hist"); c->SaveAs(filename+"_nHitpEventS_left.pdf");
   tHit_S_right->Draw("Hist"); c->SaveAs(filename+"_nHitpEventS_right.pdf");
 
-  t2DhitS->Draw("COLZ"); c->SaveAs(filename+"_n2DHitS.png");
+  t2DhitS->Draw("COLZ"); 
+  t2DhitS->GetZaxis()->SetRangeUser(0, nMaxSipmCount * 1.1);
+  for (int i = 1; i < nRows; ++i) {
+    TLine* line = new TLine(xLower, nLayers * i, xUpper, nLayers * i);
+    line->Draw("samel");
+  }
+  for (int i = 1; i < nColumns; ++i) {
+    TLine* line = new TLine(nFibers * i, yLower, nFibers* i, yUpper);
+    line->Draw("samel");
+  }
+  c->SaveAs(filename+"_n2DHitS.png");
 
   tT_S->Draw("Hist"); c->SaveAs(filename+"_tS.png");
   tT_S_left->Draw("Hist"); c->SaveAs(filename+"_tS_left.png");
