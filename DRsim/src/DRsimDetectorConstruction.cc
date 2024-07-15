@@ -29,8 +29,8 @@ using namespace std;
 G4ThreadLocal DRsimMagneticField *DRsimDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager *DRsimDetectorConstruction::fFieldMgr = 0;
 
-int DRsimDetectorConstruction::fNofRow = 3;
-int DRsimDetectorConstruction::fNofCol = 5;
+int DRsimDetectorConstruction::fNofRow = 2;
+int DRsimDetectorConstruction::fNofCol = 8;
 int DRsimDetectorConstruction::fNofModules = fNofRow * fNofCol;
 
 DRsimDetectorConstruction::DRsimDetectorConstruction()
