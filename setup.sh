@@ -4,8 +4,8 @@ if [ -z ${Geant4_DIR} ]; then
   echo "$0: error: 'Geant4_DIR' should be set."
   return
 fi
-if [ -z ${ROOT_DIR} ]; then
-  echo "$0: error: 'ROOT_DIR' should be set."
+if [ -z ${ROOTSYS} ]; then
+  echo "$0: error: ROOT environment should be set. run 'source dir_to_root/bin/thisroot.sh'"
   return
 fi
 

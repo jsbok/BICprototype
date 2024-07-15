@@ -19,7 +19,7 @@ any recent version may work.
 ### Compile
 
     export Geant4_DIR=/dir/to/geant4-install  # Geant4 install directory
-    export ROOT_DIR=/dir/to/ROOT  # ROOT library(libROOTHist.so, ...) directory
+    source /dir/to/root/bin/thisroot.sh
     
     source setup.sh
     mkdir build && cd build

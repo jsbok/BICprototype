@@ -26,8 +26,9 @@ endif()
 include(${Geant4_USE_FILE})
 
 set(g4_version $ENV{G4_VERSION})
+message("g4_version: " ${g4_version})
 if(${g4_version} VERSION_GREATER 11.0.0)
-  add_definitions(-DG4_LATEST)
+add_definitions(-DG4_LATEST)
 endif()
 add_definitions(-DG4VIS_USE -DG4UI_USE)
 
