@@ -42,9 +42,12 @@ You can use below Geant4 commands in the console to control visualization.\
 `/control/execute run_ele.mac` execute external Geant4 macro.\
 
 ### Analysis
+analysis_full.cc: Analysis with full option
+analysis.cc: Analysis with simplified options
+When running analysis.cc, import it from analysis_full.cc or use it directly to perform the corresponding task.
 
-    ./bin/analysis <path_to_root_file> <low_edge_of_hist> <high_edge>
+    ./bin/analysis <beam_energy of 5th file> <low_edge_of_hist> <high_edge>
 
 e.g.)
 
-    ./bin/analysis ./output 0 20
+    ./bin/analysis 1000 0 20
