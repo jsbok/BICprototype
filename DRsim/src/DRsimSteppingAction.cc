@@ -31,16 +31,14 @@ void DRsimSteppingAction::UserSteppingAction(const G4Step* step) {
     fLeak.vz = presteppoint->GetPosition().z();
     fLeak.vt = presteppoint->GetGlobalTime();
     fLeak.pdgId = track->GetDefinition()->GetPDGEncoding();
-
+    fLeak.kE = presteppoint->GetKineticEnergy();
+    fLeak.Tid = track->GetTrackID();
     fEventAction->fillLeaks(fLeak);
   }
 
   G4String matName = preVol->GetMaterial()->GetName();
 
-  // std::cout << "step level" <<
-  // "matName"
-
-  if ( matName=="G4_Galactic" || matName=="G4_Air" ) return;
+  if ( matName=="G4_Galactic" || matName=="Air" ) return;
 
   G4VPhysicalVolume* motherTower = GetMotherTower(theTouchable);
   fEdep.ModuleNum = GetModuleNum(motherTower->GetName());
