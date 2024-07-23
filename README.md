@@ -42,6 +42,7 @@ You can use below Geant4 commands in the console to control visualization.\
 `/control/execute run_ele.mac` execute external Geant4 macro.\
 
 ### Analysis
+Analyze up to 6 files at once.\
 analysis_full.cc: Analysis with full option.\
 analysis.cc: Analysis with simplified options.\
 When running analysis.cc, import it from analysis_full.cc or use it directly to perform the corresponding task.\
