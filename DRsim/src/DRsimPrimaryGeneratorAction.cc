@@ -1,6 +1,5 @@
 #include "DRsimPrimaryGeneratorAction.hh"
 #include "DRsimRunAction.hh"
-
 #include "G4Event.hh"
 #include "G4ParticleTable.hh"
 #include "G4ParticleDefinition.hh"
@@ -33,8 +32,6 @@ DRsimPrimaryGeneratorAction::DRsimPrimaryGeneratorAction(G4int seed, G4bool useH
 void DRsimPrimaryGeneratorAction::initPtcGun() {
   fTheta = -0.01111;
   fPhi = 0.;
-  fRandX = 10.*mm;
-  fRandZ = 10.*mm;
   fX_0 = 0.;
   fY_0 = 0.;
   fZ_0 = 0.;
@@ -79,9 +76,14 @@ void DRsimPrimaryGeneratorAction::GeneratePrimaries(G4Event* event) {
     return;
   }
 
-  G4double x = (G4UniformRand()-0.5)*fRandX + fX_0;
-  G4double y = 0 + fY_0;
-  G4double z = (G4UniformRand()-0.5)*fRandZ + fZ_0;
+  G4double meanX = 0.0 * mm;
+  G4double meanZ = 0.0 * mm;
+  G4double sigmaX = 2.5 * mm;
+  G4double sigmaZ = 2.5 * mm;
+  
+  G4double x = meanX + sigmaX * G4RandGauss::shoot();
+  G4double z = meanZ + sigmaZ * G4RandGauss::shoot();
+  G4double y = 0.0 * mm;
   fOrg.set(x,y,z);
 
   fParticleGun->SetParticlePosition(fOrg); // http://www.apc.univ-paris7.fr/~franco/g4doxy/html/classG4VPrimaryGenerator.html
@@ -90,7 +92,16 @@ void DRsimPrimaryGeneratorAction::GeneratePrimaries(G4Event* event) {
   fDirection.rotateY( -M_PI * ((90 - fTheta)/180) );
   fDirection.rotateX( M_PI * (fPhi/180.) );
 
-  fParticleGun->SetParticleMomentumDirection(fDirection);
+//  fParticleGun->SetParticleMomentumDirection(fDirection);
+  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0,1,0));
+
+//Energy
+
+  G4double energyMean = 500 * MeV;
+  G4double energySigma = 0.0 * energyMean;
+  G4double energy = energyMean + energySigma * G4RandGauss::shoot(0., 1.);
+  fParticleGun->SetParticleEnergy(energy);
+
 
   G4AutoLock lock(&DRsimPrimaryGeneratorMutex);
   fParticleGun->GeneratePrimaryVertex(event);

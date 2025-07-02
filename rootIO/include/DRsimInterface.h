@@ -73,6 +73,7 @@ public:
     float vz;
     float vt;
     int pdgId;
+    float kE;
   };
 
   struct DRsimGenData {

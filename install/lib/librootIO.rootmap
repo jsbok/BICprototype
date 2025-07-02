@@ -1,0 +1,14 @@
+{ decls }
+namespace std {  }
+
+[ librootIO.so ]
+# List of selected classes
+class DRsimInterface
+class DRsimInterface::DRsimEdepData
+class DRsimInterface::DRsimEventData
+class DRsimInterface::DRsimGenData
+class DRsimInterface::DRsimLeakageData
+class DRsimInterface::DRsimTowerData
+class DRsimInterface::threeVector
+class tuple<float,float,float>
+header DRsimInterface.h

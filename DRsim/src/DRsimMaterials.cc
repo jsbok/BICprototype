@@ -92,7 +92,8 @@ void DRsimMaterials::CreateMaterials() {
   fGelatin->AddElement(H, natoms=151);
   fGelatin->AddElement(N, natoms=31);
   fGelatin->AddElement(O, natoms=39);
-
+  
+  G4MaterialPropertiesTable* mpVacuum;
   G4MaterialPropertiesTable* mpAir;
   G4MaterialPropertiesTable* mpPS;
   G4MaterialPropertiesTable* mpPMMA;
@@ -155,10 +156,15 @@ void DRsimMaterials::CreateMaterials() {
   mpPS = new G4MaterialPropertiesTable();
   mpPS->AddProperty("RINDEX",opEn,RI_PS,nEnt);
   mpPS->AddProperty("ABSLENGTH",opEn,AbsLen_PS,nEnt);
-  mpPS->AddProperty("FASTCOMPONENT",opEn,scintFast_PS,nEnt);
   mpPS->AddConstProperty("SCINTILLATIONYIELD",10./keV);
-  mpPS->AddConstProperty("RESOLUTIONSCALE",1.0);
+  mpPS->AddConstProperty("RESOLUTIONSCALE",1);
+#ifdef G4_LATEST
+  mpPS->AddProperty("FASTCOMPONENT",opEn,scintFast_PS,nEnt,true);
+  mpPS->AddConstProperty("FASTTIMECONSTANT",2.8*ns,true);
+#else
+  mpPS->AddProperty("FASTCOMPONENT",opEn,scintFast_PS,nEnt);
   mpPS->AddConstProperty("FASTTIMECONSTANT",2.8*ns);
+#endif
   fPS->SetMaterialPropertiesTable(mpPS);
   fPS->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
 
@@ -170,22 +176,60 @@ void DRsimMaterials::CreateMaterials() {
   fGlass->SetMaterialPropertiesTable(mpGlass);
 
   G4double refl_SiPM[nEnt]; std::fill_n(refl_SiPM, nEnt, 0.);
-  G4double eff_SiPM[nEnt] = {
+
+/*
+G4double eff_SiPM[nEnt] = {
+    1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
+    1.00, 1.00, 1.00, 1.00, 1.00, 1.0, 1.00, 1.0,
+    1.00, 1.00, 1.00, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  };
+*/
+/*
+G4double eff_SiPM[nEnt] = {
+    0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+    0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001,
+    0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001
+  };
+*/
+// Bad
+/*
+G4double eff_SiPM[nEnt] = {
+    0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
+    0.00, 0.00, 0.00, 0.00, 0.01, 0.01, 0.02, 0.03,
+    0.05, 0.06, 0.08, 0.09, 0.10, 0.10, 0.10, 0.10, 0.09
+  };*/
+/*
+  G4double eff_SiPM[nEnt] = {  // from 900nm to 300nm with 25nm step
     0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
     0.00, 0.00, 0.00, 0.00, 0.01, 0.02, 0.03, 0.07,
     0.11, 0.13, 0.17, 0.19, 0.21, 0.21, 0.21, 0.20, 0.19
   };
+*/
+
+//real PMT
+   G4double eff_SiPM[nEnt] = {
+0,0,0,0,0,0,0,0,0,0,0,0.01,0.02,0.04,0.06,0.12,0.20,0.23,0.28,0.32, 0.35, 0.35, 0.35, 0.32, 0.3
+};
+
   mpSiPM = new G4MaterialPropertiesTable();
   mpSiPM->AddProperty("REFLECTIVITY",opEn,refl_SiPM,nEnt);
   mpSiPM->AddProperty("EFFICIENCY",opEn,eff_SiPM,nEnt);
   fSiPMSurf = new G4OpticalSurface("SiPMSurf",glisur,polished,dielectric_metal);
   fSiPMSurf->SetMaterialPropertiesTable(mpSiPM);
+/*
+  G4double filterEff[nEnt] = {
+    1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000,
+    1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.00, 1.,
+    1., 1., 1., 1.00, 1.000, 1.000, 1.000, 1.000, 1.000
+  };
+*/
 
   G4double filterEff[nEnt] = {
     1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 1.000,
     1.000, 1.000, 1.000, 1.000, 1.000, 1.000, 0.900, 0.734,
     0.568, 0.402, 0.296, 0.070, 0.000, 0.000, 0.000, 0.000, 0.000
   };
+
   G4double filterRef[nEnt]; std::fill_n(filterRef,nEnt,0.);
   G4double RI_gel[nEnt]; std::fill_n(RI_gel,nEnt,1.52);
   mpFilter = new G4MaterialPropertiesTable();

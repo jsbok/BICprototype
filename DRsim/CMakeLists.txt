@@ -2,12 +2,17 @@
 # Setup the project
 project(DRsim)
 
+set(CMAKE_MACOSX_RPATH 1)
+list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_PREFIX_PATH}/lib)
+list(APPEND CMAKE_INSTALL_RPATH ${ROOT_DIR})
+list(APPEND CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
+
 #----------------------------------------------------------------------------
 # Find Geant4 package, activating all available UI and Vis drivers by default
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
 # to build a batch mode only executable
 #
-option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" OFF)
+option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
 if(WITH_GEANT4_UIVIS)
   find_package(Geant4 REQUIRED ui_all vis_all)
 else()
@@ -19,6 +24,8 @@ endif()
 # Setup include directory for this project
 #
 include(${Geant4_USE_FILE})
+
+add_definitions(-DG4VIS_USE -DG4UI_USE)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project

@@ -1,5 +1,5 @@
 #include "DRsimSteppingAction.hh"
-
+#include "G4SystemOfUnits.hh"
 #include "G4ParticleDefinition.hh"
 #include "G4ParticleTypes.hh"
 
@@ -10,9 +10,19 @@ DRsimSteppingAction::DRsimSteppingAction(DRsimEventAction* eventAction)
 DRsimSteppingAction::~DRsimSteppingAction() {}
 
 void DRsimSteppingAction::UserSteppingAction(const G4Step* step) {
+  G4Track* track = step->GetTrack();
+
+ if (track->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()) {
+    if (track->GetGlobalTime() > 20*ns) {
+      track->SetTrackStatus(fStopAndKill);
+    } return;
+}
+
+
+
   if (step->GetTrack()->GetDefinition() == G4OpticalPhoton::OpticalPhotonDefinition()) return;
 
-  G4Track* track = step->GetTrack();
+//  G4Track* track = step->GetTrack();
   G4ParticleDefinition* particle = track->GetDefinition();
   G4int pdgID = particle->GetPDGEncoding();
 
@@ -31,7 +41,6 @@ void DRsimSteppingAction::UserSteppingAction(const G4Step* step) {
     fLeak.vz = presteppoint->GetPosition().z();
     fLeak.vt = presteppoint->GetGlobalTime();
     fLeak.pdgId = track->GetDefinition()->GetPDGEncoding();
-
     fEventAction->fillLeaks(fLeak);
   }
 

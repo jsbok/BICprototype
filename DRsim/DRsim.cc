@@ -10,6 +10,7 @@
 
 #include "G4UImanager.hh"
 #include "G4OpticalPhysics.hh"
+#include "G4FastSimulationPhysics.hh"
 #include "FTFP_BERT.hh"
 #include "Randomize.hh"
 
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
   if ( argc == 1 ) ui = new G4UIExecutive(argc, argv);
   #endif
 
-  G4int seed = 0;
+  G4int seed = 1;
   G4String filename;
   if (argc > 2) seed = atoi(argv[2]);
   if (argc > 3) filename = argv[3];
@@ -49,11 +50,26 @@ int main(int argc, char** argv) {
   // physics module
   G4VModularPhysicsList* physicsList = new FTFP_BERT;
   G4OpticalPhysics* opticalPhysics = new G4OpticalPhysics();
+
   physicsList->RegisterPhysics(opticalPhysics);
+#ifdef G4_LATEST
+  G4OpticalParameters* opticalParameters = G4OpticalParameters::Instance();
+
+  opticalParameters->SetProcessActivation("Cerenkov", true);
+  opticalParameters->SetProcessActivation("Scintillation", true);
+  opticalParameters->SetCerenkovTrackSecondariesFirst(true);
+  opticalParameters->SetScintTrackSecondariesFirst(true);
+#else
   opticalPhysics->Configure(kCerenkov, true);
   opticalPhysics->Configure(kScintillation, true);
   opticalPhysics->SetTrackSecondariesFirst(kCerenkov, true);
   opticalPhysics->SetTrackSecondariesFirst(kScintillation, true);
+#endif
+
+  G4FastSimulationPhysics* fastsimPhysics = new G4FastSimulationPhysics();
+  fastsimPhysics->ActivateFastSimulation("opticalphoton");
+  physicsList->RegisterPhysics(fastsimPhysics);
+
   runManager->SetUserInitialization(physicsList);
 
   // User action initialization

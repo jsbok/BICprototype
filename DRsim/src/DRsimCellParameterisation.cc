@@ -14,7 +14,7 @@ DRsimCellParameterisation::DRsimCellParameterisation(const G4int numx, const G4i
     for (G4int j = 0; j < numy; j++ ) {
 
       if (k%2!=0 && j==numy-1) break;
-      fXCell.push_back( -moduleH*mm/2 + k*1.22*mm + 0.61*mm );
+      fXCell.push_back( -moduleH*mm/2 + k*1.2826*mm + 0.6413*mm );
       if (k%2==0) {fYCell.push_back( -moduleW*mm/2 + j*1.35*mm + 0.675*mm );}
       else {fYCell.push_back( -moduleW*mm/2 + j*1.35*mm + 1.35*mm );}
     }
