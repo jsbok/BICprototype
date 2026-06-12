@@ -1,5 +1,5 @@
 #include "RootInterface.h"
-#include "DRsimInterface.h"
+#include "koBICInterface.h"
 #include "functions.h"
 
 #include "TROOT.h"
@@ -26,9 +26,9 @@ int main(int argc, char* argv[]) {
 
   if (!filename.EndsWith(".root"))
     filename = filename + ".root";
-  RootInterface<DRsimInterface::DRsimEventData>* drInterface = new RootInterface<DRsimInterface::DRsimEventData>(std::string(filename), true);
-  drInterface->set("DRsim","DRsimEventData");
-  //drInterface->GetChain("DRsim");
+  RootInterface<koBICInterface::koBICEventData>* drInterface = new RootInterface<koBICInterface::koBICEventData>(std::string(filename), true);
+  drInterface->set("koBIC","koBICEventData");
+  //drInterface->GetChain("koBIC");
 
   TH1F* tEdep = new TH1F("totEdep",";MeV;Evt",100,low*1000.,high*1000.);
   tEdep->Sumw2(); tEdep->SetLineColor(kRed); tEdep->SetLineWidth(2);
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
   while (drInterface->numEvt() < entries) {
     if (drInterface->numEvt() % 100 == 0) printf("Analyzing %dth event ...\n", drInterface->numEvt());
 
-    DRsimInterface::DRsimEventData drEvt;
+    koBICInterface::koBICEventData drEvt;
     drInterface->read(drEvt);
 
     float Edep = 0.;

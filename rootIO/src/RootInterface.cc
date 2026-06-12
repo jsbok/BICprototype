@@ -1,5 +1,5 @@
 #include "RootInterface.h"
-#include "DRsimInterface.h"
+#include "koBICInterface.h"
 
 template <typename T>
 RootInterface<T>::RootInterface(const std::string& filename, bool key)
@@ -72,4 +72,4 @@ TTree* RootInterface<T>::getTree() {
   return fTree;
 }
 
-template class RootInterface<DRsimInterface::DRsimEventData>;
+template class RootInterface<koBICInterface::koBICEventData>;

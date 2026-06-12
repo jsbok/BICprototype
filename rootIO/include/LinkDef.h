@@ -5,12 +5,12 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class DRsimInterface::threeVector+;
-#pragma link C++ struct DRsimInterface::DRsimSiPMData+;
-#pragma link C++ struct DRsimInterface::DRsimTowerData+;
-#pragma link C++ struct DRsimInterface::DRsimEdepData+;
-#pragma link C++ struct DRsimInterface::DRsimLeakageData+;
-#pragma link C++ struct DRsimInterface::DRsimGenData+;
-#pragma link C++ struct DRsimInterface::DRsimEventData+;
+#pragma link C++ class koBICInterface::threeVector+;
+#pragma link C++ struct koBICInterface::koBICSiPMData+;
+#pragma link C++ struct koBICInterface::koBICTowerData+;
+#pragma link C++ struct koBICInterface::koBICEdepData+;
+#pragma link C++ struct koBICInterface::koBICLeakageData+;
+#pragma link C++ struct koBICInterface::koBICGenData+;
+#pragma link C++ struct koBICInterface::koBICEventData+;
 
 #endif

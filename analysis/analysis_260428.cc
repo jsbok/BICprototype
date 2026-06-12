@@ -17,9 +17,9 @@
 #include <string>
 
 int main(int argc, char* argv[]) {
-  TString filename1 = "/home/changhui/work/BICprototype2026/BICprototype/build/koBIC/_0";
-//  TString filename1 = "/u/user/changhui/koBIC2025/BICprototype2025/rootfiles/4by8_e-_7_GeV_2025/root/R4by8_epi_7_GeV_2025_20M";
-  TString filename2 = "/u/user/changhui/BICprototype2025/rootfiles/3by8_e-_1_GeV2024_slow/root/R3by8_e-_1_GeV2024_slow_10M";
+  TString filename1 = "/u/user/changhui/koBIC2025/BICprototype2025/rootfiles/3by8_e-_3_GeV_beam/root/R3by8_e-_3_GeV_beam_1M";
+  TString filename2 = "/u/user/changhui/BICprototype2025/rootfiles/3by8_e-_3_GeV_2025_slow/root/R3by8_e-_3_GeV_2025_slow_10M";
+        std::cout<< "file ok" << std::endl;
 
   int file1=1; int file2=0; // File loop on/off
 
@@ -34,42 +34,38 @@ int main(int argc, char* argv[]) {
 
   RootInterface<koBICInterface::koBICEventData>* drInterface = new RootInterface<koBICInterface::koBICEventData>(std::string(filename1 + ".root"), true);
   drInterface->set("koBIC","koBICEventData");
-
-  TH1F* tEdepC = new TH1F("S.F.",";Sampling Fraction; Evt",100,0.,0.2);
-  tEdepC->Sumw2(); tEdepC->SetLineColor(2); tEdepC->SetLineWidth(2);
-
-
-  TH1F* tEdep = new TH1F("totEdep",";MeV;Evt",100,low*80.,high*200.);
+std::cout<< "file ok" << std::endl;
+  TH1F* tEdep = new TH1F("totEdep",";MeV;Evt",300,low*80.,high*130.);
   tEdep->Sumw2(); tEdep->SetLineColor(2); tEdep->SetLineWidth(2);
   TH1F* tEdep2 = new TH1F("totEdep2",";MeV;Evt",100,low*80.,high*130.);
   tEdep2->Sumw2(); tEdep2->SetLineColor(kBlue); tEdep2->SetLineWidth(2);
 
-  TH1F* tHit_S = new TH1F("Hit_S","; reconstructed E (MeV);Evt",150, 0,30000);
+  TH1F* tHit_S = new TH1F("Hit_S",";# of p.e.;Evt",120,0,6000);
   tHit_S->Sumw2(); tHit_S->SetLineColor(2); tHit_S->SetLineWidth(2);
-  TH1F* tHit_S2 = new TH1F("Hit_S2","; reconstructed E (MeV);Evt",300,0,21000);
+  TH1F* tHit_S2 = new TH1F("Hit_S2",";# of p.e.;Evt",150,0,5000);
   tHit_S2->Sumw2(); tHit_S2->SetLineColor(kBlue); tHit_S2->SetLineWidth(2);
 
-  TH1F* Edep_M[51];
-for (int i =1; i < 51; i++){
-  Edep_M[i] = new TH1F(Form("Edep_M%d",i),";Energy(MeV); Evt",100,0,0.2);
+  TH1F* Edep_M[25];
+for (int i =1; i < 25; i++){
+  Edep_M[i] = new TH1F(Form("Edep_M%d",i),";Energy(MeV);Evt",inE*0.04,0,inE*0.4);
   Edep_M[i]->Sumw2(); Edep_M[i]->SetLineColor(4); Edep_M[i]->SetLineWidth(2);}
 
-  TH1F* Nhits_M_L[51]; TH1F* Nhits_M_R[51];
-for (int j =1; j < 51; j++){
-  Nhits_M_L[j] = new TH1F(Form("Nhits_L_M%d",j),"; Reconstructed E (MeV); Evt",0.3*inE,0,0.3*inE);
+  TH1F* Nhits_M_L[25]; TH1F* Nhits_M_R[25];
+for (int j =1; j < 25; j++){
+  Nhits_M_L[j] = new TH1F(Form("Nhits_L_M%d",j),";# of p.e.;Evt",0.02*inE,0,0.2*inE);
   Nhits_M_L[j]->Sumw2(); Nhits_M_L[j]->SetLineColor(3); Nhits_M_L[j]->SetLineWidth(2);
-  Nhits_M_R[j] = new TH1F(Form("Nhits_R_M%d",j),"; Reconstructed E (MeV); Evt",0.3*inE,0,0.3*inE);
+  Nhits_M_R[j] = new TH1F(Form("Nhits_R_M%d",j),";# of p.e.;Evt",0.02*inE,0,0.2*inE);
   Nhits_M_R[j]->Sumw2(); Nhits_M_R[j]->SetLineColor(3); Nhits_M_R[j]->SetLineWidth(2);
 }
-
-  TH1F* THits = new TH1F("THits",";ModuleN; # of p.e (%)",50,0,50);
+std::cout<< "histo ok" << std::endl;
+  TH1F* THits = new TH1F("THits",";ModuleN; # of p.e (%)",24,0,24);
   THits->Sumw2(); THits->SetLineColor(kRed); THits->SetLineWidth(2);
-  TH1F* THits2 = new TH1F("THits2",";ModuleN; # of p.e.",50,0,50);
+  TH1F* THits2 = new TH1F("THits2",";ModuleN; # of p.e.",24,0,24);
   THits2->Sumw2(); THits2->SetLineColor(kBlue); THits2->SetLineWidth(2);
  
-  TH1F* THitss = new TH1F("THits",";ModuleN; Edep(MeV)",50,0,50);
+  TH1F* THitss = new TH1F("THits",";ModuleN; Edep(MeV)",32,0,32);
   THitss->Sumw2(); THitss->SetLineColor(kRed); THitss->SetLineWidth(2);
-  TH1F* THitss2 = new TH1F("THits2",";ModuleN; # of p.e.",50,0,50);
+  TH1F* THitss2 = new TH1F("THits2",";ModuleN; # of p.e.",32,0,32);
   THitss2->Sumw2(); THitss2->SetLineColor(kBlue); THitss2->SetLineWidth(2);
 
   TH1F* tP_leak = new TH1F("Pleak",";MeV;Evt",80,0.,800.*high);
@@ -89,41 +85,41 @@ for (int j =1; j < 51; j++){
  TH2D* t2DhitS = new TH2D("2D Hit S1", "", xBins, xLower, xUpper, yBins, yLower, yUpper); t2DhitS->Sumw2(); t2DhitS->SetStats(0);
  TH2D* t2DhitS2 = new TH2D("2D Hit S2", "", xBins, xLower, xUpper, yBins, yLower, yUpper); t2DhitS2->Sumw2(); t2DhitS2->SetStats(0);
 
-float Edep_Num[50] = {0};float Edep_Num2[50] = {0}; float Edep_Numm[50] = {0};
+float Edep_Num[40] = {0};float Edep_Num2[40] = {0}; float Edep_Numm[40] = {0};
 
 if (file1==1) {
 
- TFile *file = new TFile("/home/changhui/work/BICprototype2026/BICprototype/build/analysis/100MeV_tree.root", "RECREATE");
+ TFile *file = new TFile("/u/user/changhui/koBIC2025/BICprototype2025/build/analysis/3x8_e-_3_GeV_beam_tree.root", "RECREATE");
  TTree *tree = new TTree("Ttree", "Edep and Nhits ");
 // tree->SetBranchAddress("edep.Edep", &edep);
 // tree->SetBranchAddress("edep.Module", &moduleN);
+ std::cout<< "b" << std::endl;
 
-    Float_t edep1[50]={0};  // 24개의모듈 데이터를 저장
-    Int_t moduleN_E[50]={0} ; Int_t moduleN_H[50]={0} ; Float_t Nhits_L[50]={0}; Float_t Nhits_R[50]={0}; Float_t Core_E[50]={0};
+    Float_t edep1[24]={0};  // 24개의모듈 데이터를 저장
+    Int_t moduleN_E[24]={0} ; Int_t moduleN_H[24]={0} ; Float_t Nhits_L[24]={0}; Float_t Nhits_R[24]={0}; 
     tree->Branch("edep1", edep1, "edep1[24]/F");
     tree->Branch("moduleN_E",moduleN_E, "moduleN_E[24]/I");
     tree->Branch("moduleN_H",moduleN_H, "moduleN_H[24]/I");
-    tree->Branch("Core_E", Core_E, "Core_E[24]/F");
     tree->Branch("Nhits_L", Nhits_L, "Nhits_L[24]/F");
     tree->Branch("Nhits_R", Nhits_R, "Nhits_R[24]/F");
 
-    float totHit = 0; float nHits[50]= {0};
-  unsigned int entries = drInterface->entries();
+    float totHit = 0; float nHits[24]= {0};
+  unsigned int entries = /*10000;*/ drInterface->entries();
   while (drInterface->numEvt() < entries) {
-    if (drInterface->numEvt() % 10 == 0) printf("1st analyzing %dth event ...\n", drInterface->numEvt());
+    if (drInterface->numEvt() % 1000 == 0) printf("1st analyzing %dth event ...\n", drInterface->numEvt());
 
     koBICInterface::koBICEventData drEvt;
     drInterface->read(drEvt);
 //    float edep1[25]={0};  // 24개의모듈 데이터를 저장
 //    float Nhits_L[25]={0}; float Nhits_R[25]={0};  int moduleN_E[25]={0} ; int moduleN_H[25]={0};
 
-    float EdepCore = 0.;float Edep = 0.; float totE = 0.; float ratE = 0;  float Edep_Num[50] = {0}; float EdepC_Num[50] = {0};
+    float Edep = 0.; float totE = 0.; float ratE = 0;  float Edep_Num[24] = {0}; //float Edep_Numm[24] = {0};
 
- float Nhits_Numm_L[50]={0}; float Nhits_Numm_R[50]={0};
+ float Nhits_Numm_L[24]={0}; float Nhits_Numm_R[24]={0};
     for (auto edepItr = drEvt.Edeps.begin();  edepItr != drEvt.Edeps.end(); ++edepItr) {
       auto edep = *edepItr;
 
-    for (int i=0; i<50; i++){
+    for (int i=0; i<24; i++){
       if (edep.ModuleNum == i){
         Edep_Num[i] += edep.Edep;
         Edep_Numm[i] += edep.Edep;
@@ -132,28 +128,16 @@ if (file1==1) {
  //     else {Edep_Num[i] = 0;}
     }
       Edep += edep.Edep;
-//      EdepCore += edep.EdepCore;
     }
-
-    tEdep->Fill(Edep);
+    tEdep->Fill(Edep); 
 float Eleak = 0;
     for (auto leak : drEvt.leaks) {
-
-
-    for (int i=0; i<50; i++){
-      if (leak.ModuleNum == i){
-        EdepC_Num[i] += leak.EdepCore;
-       }
-       }
-	    Eleak += leak.kE;
-            EdepCore += leak.EdepCore;
+            Eleak += leak.kE;
 }
-    tEdepC->Fill(EdepCore/Edep);
 tP_leak->Fill(Eleak);
-for (int j=1; j<51; j++){
-    Edep_M[j]->Fill(EdepC_Num[j-1]/Edep_Num[j-1]);
-    edep1[j-1] = Edep_Num[j-1]; 
-//    edepC[j-1] = EdepC_Num[j-1];    
+for (int j=1; j<25; j++){
+    Edep_M[j]->Fill(Edep_Num[j-1]) ;
+    edep1[j-1] = Edep_Num[j-1];     
     moduleN_E[j-1] = j ; 
 //std::cout<<"Edep_Numm : "<<Edep_Num[j-1]<< "edep : " << edep1[j-1] << "moduleN : "<< moduleN_E[j-1] <<  j <<std::endl;
 } 
@@ -164,36 +148,38 @@ for (int j=1; j<51; j++){
       for (auto sipm = tower->SiPMs.begin(); sipm != tower->SiPMs.end(); ++sipm) {   
         isLeft = sipm->isleft;
         int plateNum = sipm->y; int fiberNum = 24 - sipm->x; 
-        nHitS += sipm->count;
+//double ang = sipm->photonAngles;
+//if ( (ang < 20.4) || (ang > 159.6) ) {
+	nHitS += sipm->count;
         nHits[moduleNum] += sipm->count;   
 
-  for (int i=0;i<50;i++) {
+  for (int i=0;i<33;i++) {
    if (moduleNum == i) {//moduleN_H=i;
-      if (isLeft==0) {Nhits_Numm_L[i] += sipm->count; // Nhits_L[i]+=sipm->count; 
-}
+      if (isLeft==0) {Nhits_Numm_L[i] += sipm->count; // Nhits_L[i]+=sipm->count;
+      }
       else {Nhits_Numm_R[i] += sipm->count;// Nhits_R[i] += sipm->count;
 }
     }
     }
         t2DhitS->Fill(nFibers*(moduleNum%nColumns)+fiberNum, nLayers*(moduleNum/nColumns)+plateNum, sipm->count); 
-     }//SiPM loop
+//    }
+   	}//SiPM loop
     }//tower loop
 
-tHit_S->Fill(nHitS);  totHit += nHitS;
+tHit_S->Fill(nHitS/36.27);  totHit += nHitS;
 
-  for (int j=1; j<51; j++){
+  for (int j=1; j<25; j++){
 //    nHitS += Nhits_Numm_L[j-1]  ;
 //    nHitS += Nhits_Numm_R[j-1] ;
     Nhits_M_L[j]->Fill(Nhits_Numm_L[j-1]/36.27);
     Nhits_M_R[j]->Fill(Nhits_Numm_R[j-1]/36.27);
-    Core_E[j-1]=EdepC_Num[j-1];
-    Nhits_L[j-1]=Nhits_Numm_L[j-1];
-    Nhits_R[j-1]=Nhits_Numm_R[j-1];
+    Nhits_L[j-1]=Nhits_Numm_L[j-1]/36.27;
+    Nhits_R[j-1]=Nhits_Numm_R[j-1]/36.27;
     moduleN_H[j-1]=j;
 //std::cout<<"Edep_Numm : "<<Edep_Num[j-1]<< "edep : " << edep1[j] << "moduleN : "<< moduleN_E[j] <<  j <<std::endl;
   } tree->Fill();
   } // event loop
-    for (int z=0;z<50;z++) {  THits -> Fill(z,nHits[z]*100/totHit); }
+    for (int z=0;z<24;z++) {  THits -> Fill(z,nHits[z]*100/totHit); }
 
     rat_E = tEdep->GetMean() / e1 ; std::cout << "ratE  : " <<  rat_E << std::endl;
     Edep_ratio -> SetBinContent(30,rat_E*100);
@@ -216,7 +202,7 @@ if (file2==1) {
   RootInterface<koBICInterface::koBICEventData>* drInterface2 = new RootInterface<koBICInterface::koBICEventData>(std::string(filename2 + ".root"), true);
   drInterface2->set("koBIC","koBICEventData"); 
 
-  int totHit2=0; float nHits2[24]={0};
+  int totHit2=0; float nHits2[32]={0};
   unsigned int entries2 = 10000;// drInterface2->entries();
   while (drInterface2->numEvt() < entries2) {
     if (drInterface2->numEvt() % 1000 == 0) printf("2nd analyzing %dth event ...\n", drInterface2->numEvt());
@@ -228,7 +214,7 @@ if (file2==1) {
     for (auto edepItr2 = drEvt.Edeps.begin(); edepItr2 != drEvt.Edeps.end(); ++edepItr2) {
       auto edep2 = *edepItr2;
 
-for (int i2=0; i2<24; i2++){
+for (int i2=0; i2<32; i2++){
       if (edep2.ModuleNum == i2){
         Edep_Num2[i2] += edep2.Edep;
       }
@@ -256,7 +242,7 @@ for (int i2=0; i2<24; i2++){
 //std::cout << "Nhits :" << nHitS2 << std::endl;
     tHit_S2->Fill(nHitS2); totHit2 += nHitS2 ;
 } // 2nd event root
-    for (int zz=0;zz<24;zz++) {  THits2 -> Fill(zz,nHits2[zz]*100/totHit2); }
+    for (int zz=0;zz<32;zz++) {  THits2 -> Fill(zz,nHits2[zz]*100/totHit2); }
   
     rat_E2 = tEdep2->GetMean() / e2 ;
     Edep_ratio2-> SetBinContent(30,rat_E2*100);
@@ -265,7 +251,7 @@ for (int i2=0; i2<24; i2++){
 //    std::cout << "4GeV BinErr = " << tEdep2->GetStdDev()*100/e2  << std::endl;
 
 }
- for (int ii=1; ii<51; ii++){
+ for (int ii=1; ii<25; ii++){
      THitss->SetBinContent(ii,Edep_Numm[ii-1]/10000);
     }
 
@@ -318,7 +304,7 @@ c->SaveAs(filename1+"compare_Pleak_e.png");
 //
 
   float Tot = THitss->Integral();
- for (int o=1; o<51; o++){ float val = THitss->GetBinContent(o); 
+ for (int o=1; o<33; o++){ float val = THitss->GetBinContent(o); 
  std::cout << Form("Mod %d :  ",o) << val *100/Tot << "%,   " << val  << "MeV" <<  std::endl;   }
 // c->SaveAs(filename1+"compare_tower_Edep.png");
  std::cout << "Total Edep, (%) : " << Tot <<  " MeV, "  << Tot*100/inE << "(%)" << std::endl;
@@ -326,8 +312,8 @@ c->SaveAs(filename1+"compare_Pleak_e.png");
    tHit_S->SetStats(1);
  //  tHit_S->GetYaxis()->SetRangeUser(0,100);
  
- tHit_S->SetMarkerColor(kBlue);  tHit_S->SetMarkerStyle(7);  tHit_S->Draw("Hist"); tHit_S2->SetMarkerColor(kBlue); tHit_S2->SetMarkerStyle(7);
-    gaussFit_S->Draw("same");
+ tHit_S->SetMarkerColor(kRed);  tHit_S->SetMarkerStyle(7);  tHit_S->Draw("Hist"); tHit_S2->SetMarkerColor(kBlue); tHit_S2->SetMarkerStyle(7);
+//    gaussFit_S->Draw("same");
     gStyle->SetOptFit(1);
 //  tHit_S2->Draw("Hist p same" ); tHit_S2->SetMarkerStyle(24); 
 c->SaveAs(filename1 +"compare_nHitpEventSG_cal.png");
@@ -345,12 +331,12 @@ tHit_S->Write();tHit_S2->Write();tHit_S3->Write();tHit_S4->Write();tHit_S5->Writ
 outputFile1->Close();   
 */
 
-   TFile *outputFile2 = new TFile("/home/changhui/work/BICprototype2026/BICprototype/build/analysis/100MeV_hist.root", "RECREATE");
-tEdep->Write(); tEdepC->Write(); tHit_S->Write();
-for (int jjj=1; jjj<51; jjj++){ 
+   TFile *outputFile2 = new TFile("/u/user/changhui/koBIC2025/BICprototype2025/build/analysis/3x8_e-_3_GeV_beam_hist.root", "RECREATE");
+tEdep->Write();     tHit_S ->Write();
+for (int jjj=1; jjj<25; jjj++){ 
     Edep_M[jjj]->Write();
 }
-for (int jjjj=1; jjjj<51; jjjj++){
+for (int jjjj=1; jjjj<25; jjjj++){
     Nhits_M_L[jjjj]->Write(); Nhits_M_R[jjjj]->Write();
 }
 outputFile2->Close();
@@ -358,75 +344,56 @@ outputFile2->Close();
 c->SaveAs(filename1+"compare_Edep_ratio_e.png");
 
   TCanvas* c1 = new TCanvas("c1","");
-c1->SetCanvasSize(2400,1200);
-c1->Divide(8,4);
+c1->SetCanvasSize(1600,800);
+c1->Divide(8,3);
 
-for (int j=1; j<51; j++){   //  if (j<1 || j>50) continue;
-	c1->cd(j); gPad->Clear();// c1->SetMargin(0.01, 0.01, 0.01, 0.01);
+for (int j=1; j<25; j++){ c1->cd(j);// c1->Clear();// c1->SetMargin(0.01, 0.01, 0.01, 0.01);
         Edep_M[j]->Draw("Hist");
-        Edep_M[j]->GetYaxis()->SetMaxDigits(3);
 	gStyle -> SetOptFit(0); 
-
 	TPad*pad=(TPad*)gPad;
-        pad->SetTopMargin(0.03);
-        pad->SetBottomMargin(0.1);
-        pad->SetLeftMargin(0.1);
+        pad->SetTopMargin(0.01);
+        pad->SetBottomMargin(0.12);
+        pad->SetLeftMargin(0.15);
         pad->SetRightMargin(0.01);
-       
+        
+        Edep_M[j]->GetXaxis()->SetTitleSize(0.06);
+        Edep_M[j]->GetYaxis()->SetTitleSize(0.05);
+
+//gPad->Update();
+
     TPaveStats *stats = (TPaveStats*)Edep_M[j]->GetListOfFunctions()->FindObject("stats");
     if (stats) { 
-        stats->SetTextSize(0.06);
-stats->SetX1NDC(0.55);stats->SetX2NDC(0.99);stats->SetY1NDC(0.55);stats->SetY2NDC(0.99);
+	double leftMargin = pad->GetLeftMargin();
+        double rightMargin = pad->GetRightMargin();
+
+        stats->SetTextSize(0.08);
+stats->SetX1NDC(0.65);stats->SetX2NDC(1-rightMargin);stats->SetY1NDC(0.55);stats->SetY2NDC(0.99);
  }}
+
 c1->SaveAs(filename1+"Edep_Allmod.png");
+
 /*
-TCanvas* c2 = new TCanvas("c1","");
-c2->SetCanvasSize(2400,1200);
-c2->Divide(8,4);
+for (int jj=1; jj<16; jj++){  c1->cd(jj);
+//    Nhits_M[jj]->Draw("Hist");
+//    gStyle->SetOptFit(0);
 
-for (int jj=1; jj<51; jj++){  
-    c1->cd(jj); gPad->Clear();
-    Nhits_M_R[jj]->Draw("Hist");
-    Nhits_M_R[jj]->GetYaxis()->SetMaxDigits(3);
-    gStyle->SetOptFit(0);
-
-	TPad*pad1=(TPad*)gPad;
-        pad1->SetTopMargin(0.03);
+TPad*pad1=(TPad*)gPad;
+     pad1->SetTopMargin(0.01);
         pad1->SetBottomMargin(0.1);
-        pad1->SetLeftMargin(0.1);
+        pad1->SetLeftMargin(0.15);
         pad1->SetRightMargin(0.01);
 
-    TPaveStats *stats1 = (TPaveStats*)Nhits_M_R[jj]->GetListOfFunctions()->FindObject("stats");
+    TPaveStats *stats1 = (TPaveStats*)Nhits_M[jj]->GetListOfFunctions()->FindObject("stats");
     if (stats1) {
-        stats1->SetTextSize(0.06);
+        stats1->SetTextSize(0.08);
 stats1->SetX1NDC(0.55);stats1->SetX2NDC(0.99);stats1->SetY1NDC(0.55);stats1->SetY2NDC(0.99);
 
-} }c1->SaveAs(filename1+"Nhits_Allmod_R.png");
-
-for (int jj=1; jj<51; jj++){
-    c1->cd(jj); gPad->Clear();
-    Nhits_M_L[jj]->Draw("Hist");
-    Nhits_M_L[jj]->GetYaxis()->SetMaxDigits(3);
-    gStyle->SetOptFit(0);
-
-        TPad*pad1=(TPad*)gPad;
-        pad1->SetTopMargin(0.03);
-        pad1->SetBottomMargin(0.1);
-        pad1->SetLeftMargin(0.1);
-        pad1->SetRightMargin(0.01);
-
-    TPaveStats *stats1 = (TPaveStats*)Nhits_M_L[jj]->GetListOfFunctions()->FindObject("stats");
-    if (stats1) {
-        stats1->SetTextSize(0.06);
-stats1->SetX1NDC(0.55);stats1->SetX2NDC(0.99);stats1->SetY1NDC(0.55);stats1->SetY2NDC(0.99);
-
- }c1->SaveAs(filename1+"Nhits_Allmod_L.png");
-
-
+} }c1->SaveAs(filename1+"Nhits_Allmod.png");
 */
+
 /*
   for ( int Bin = 0 ; Bin < 16 ; ++Bin) {
-
+ std::cout << "Nhits " << Bin << " : "  << THits3->GetBinContent(Bin) <<std::endl;
 }*/// Get bin counts
 }
 

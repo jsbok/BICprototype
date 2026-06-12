@@ -1,5 +1,5 @@
 #include "RootInterface.h"
-#include "DRsimInterface.h"
+#include "koBICInterface.h"
 #include "functions.h"
 
 #include "TROOT.h"
@@ -35,9 +35,9 @@ int main(int argc, char* argv[]) {
 
   gStyle->SetOptFit(1);
 
-  RootInterface<DRsimInterface::DRsimEventData>* drInterface = new RootInterface<DRsimInterface::DRsimEventData>(std::string(filename1 + ".root"), true);
-  drInterface->set("DRsim","DRsimEventData");
-  //drInterface->GetChain("DRsim");
+  RootInterface<koBICInterface::koBICEventData>* drInterface = new RootInterface<koBICInterface::koBICEventData>(std::string(filename1 + ".root"), true);
+  drInterface->set("koBIC","koBICEventData");
+  //drInterface->GetChain("koBIC");
 
   TH1F* tEdep = new TH1F("totEdep",";MeV;Evt",80,low*1000.,high*800.);
   tEdep->Sumw2(); tEdep->SetLineColor(kRed); tEdep->SetLineWidth(2);
@@ -154,7 +154,7 @@ if (file1==1) {
   while (drInterface->numEvt() < entries) {
     if (drInterface->numEvt() % 1000 == 0) printf("1st analyzing %dth event ...\n", drInterface->numEvt());
 
-    DRsimInterface::DRsimEventData drEvt;
+    koBICInterface::koBICEventData drEvt;
     drInterface->read(drEvt);
 
     float Edep = 0.; float totE = 0.; float ratE = 0; 
@@ -223,14 +223,14 @@ THits -> Fill(moduleNum,nHits);
  }
 if (file2==1) {
 // second file
-  RootInterface<DRsimInterface::DRsimEventData>* drInterface2 = new RootInterface<DRsimInterface::DRsimEventData>(std::string(filename2 + ".root"), true);
-  drInterface2->set("DRsim","DRsimEventData"); 
+  RootInterface<koBICInterface::koBICEventData>* drInterface2 = new RootInterface<koBICInterface::koBICEventData>(std::string(filename2 + ".root"), true);
+  drInterface2->set("koBIC","koBICEventData"); 
 
   unsigned int entries2 = drInterface2->entries();
   while (drInterface2->numEvt() < entries2) {
     if (drInterface2->numEvt() % 1000 == 0) printf("2nd analyzing %dth event ...\n", drInterface2->numEvt());
 
-    DRsimInterface::DRsimEventData drEvt;
+    koBICInterface::koBICEventData drEvt;
     drInterface2->read(drEvt);
 
     float Edep2 = 0.; float totE2 = 0.; float ratE2 = 0; float rat_E2 = 0;
@@ -287,14 +287,14 @@ if (file2==1) {
 
 }
 if (file3==1) {
-  RootInterface<DRsimInterface::DRsimEventData>* drInterface3 = new RootInterface<DRsimInterface::DRsimEventData>(std::string(filename3 + ".root"), true);
-  drInterface3->set("DRsim","DRsimEventData");
+  RootInterface<koBICInterface::koBICEventData>* drInterface3 = new RootInterface<koBICInterface::koBICEventData>(std::string(filename3 + ".root"), true);
+  drInterface3->set("koBIC","koBICEventData");
 
   unsigned int entries3 = drInterface3->entries();
   while (drInterface3->numEvt() < entries3) {
     if (drInterface3->numEvt() % 1000 == 0) printf("3rd analyzing %dth event ...\n", drInterface3->numEvt());
 
-    DRsimInterface::DRsimEventData drEvt;
+    koBICInterface::koBICEventData drEvt;
     drInterface3->read(drEvt);
 
     float Edep3 = 0.; float totE3 = 0.; float ratE3 = 0; float rat_E3 = 0; 
@@ -348,14 +348,14 @@ if (drInterface3->numEvt() == 9111) { std::cout << " P : "<< leak4vec.P() << ", 
 } // 3rd event root
 }
 if (file4==1) {
-  RootInterface<DRsimInterface::DRsimEventData>* drInterface4 = new RootInterface<DRsimInterface::DRsimEventData>(std::string(filename4 + ".root"), true);
-  drInterface4->set("DRsim","DRsimEventData");
+  RootInterface<koBICInterface::koBICEventData>* drInterface4 = new RootInterface<koBICInterface::koBICEventData>(std::string(filename4 + ".root"), true);
+  drInterface4->set("koBIC","koBICEventData");
 
   unsigned int entries4 = drInterface4->entries();
   while (drInterface4->numEvt() < entries4) {
     if (drInterface4->numEvt() % 1000 == 0) printf("4th analyzing %dth event ...\n", drInterface4->numEvt());
 
-    DRsimInterface::DRsimEventData drEvt;
+    koBICInterface::koBICEventData drEvt;
     drInterface4->read(drEvt);
 
     float Edep4 = 0.; float totE4 = 0.; float ratE4 = 0; float rat_E4 = 0;
@@ -405,14 +405,14 @@ if (file4==1) {
 } // 4th event root
 }
 if (file5==1) {
-    RootInterface<DRsimInterface::DRsimEventData>* drInterface5 = new RootInterface<DRsimInterface::DRsimEventData>(std::string(filename5 + ".root"), true);
-  drInterface5->set("DRsim","DRsimEventData");
+    RootInterface<koBICInterface::koBICEventData>* drInterface5 = new RootInterface<koBICInterface::koBICEventData>(std::string(filename5 + ".root"), true);
+  drInterface5->set("koBIC","koBICEventData");
 
   unsigned int entries5 = drInterface5->entries();
   while (drInterface5->numEvt() < entries5) {
     if (drInterface5->numEvt() % 1000 == 0) printf("5th analyzing %dth event ...\n", drInterface5->numEvt());
 
-    DRsimInterface::DRsimEventData drEvt;
+    koBICInterface::koBICEventData drEvt;
     drInterface5->read(drEvt);
 
     float Edep5 = 0.; float totE5 = 0.; float ratE5 = 0; float rat_E5 = 0; float PE = 0;
