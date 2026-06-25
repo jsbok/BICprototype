@@ -16,6 +16,7 @@
 #include "G4VSolid.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "G4VisAttributes.hh"
+#include "G4Region.hh"
 
 #include "dimensionCalc.hh"
 
@@ -68,6 +69,9 @@ private:
   G4VisAttributes *fVisAttrGray;
   G4VisAttributes *fVisAttrGreen;
   G4VisAttributes *fVisAttrSkyBlue;
+
+  G4Region* fScintRegion;
+  G4Region* fCerenRegion;
 
   G4double fFrontL;
   G4double fTowerDepth;

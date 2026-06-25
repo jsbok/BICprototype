@@ -8,7 +8,7 @@
 #include "G4PVParameterised.hh"
 #include "G4PVPlacement.hh"
 #include "G4VPhysicalVolume.hh"
-
+#include "FastOpTransportModel.hh"
 #include "G4GeometryManager.hh"
 #include "G4IntersectionSolid.hh"
 #include "G4LogicalBorderSurface.hh"
@@ -123,6 +123,9 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
   fiberCore_Bulk = new G4Tubs("fiberCore_Bulk", 0, core_S_rMax, 300. / 2., 0 * deg, 360. * deg);
   fiberGlue_Bulk = new G4Tubs("fiberGlue_Bulk", 0, glue_S_rMax, 300./ 2., 0*deg, 360*deg);
 
+  fCerenRegion = new G4Region("cerenRegion");
+  fScintRegion = new G4Region("scintRegion");
+
   dimCalc = new dimensionCalc();
   dimCalc->SetFrontL(fFrontL);
   dimCalc->SetTower_height(fTowerDepth);
@@ -184,6 +187,12 @@ void koBICDetectorConstruction::ConstructSDandField() {
             }
         }
     }
+  FastOpTransportModel* cerenModel = new FastOpTransportModel("fastOpTransportCeren",fCerenRegion);
+  FastOpTransportModel* scintModel = new FastOpTransportModel("fastOpTransportScint",fScintRegion);
+  cerenModel->SetFiberLength(fTowerDepth);
+  cerenModel->SetCoreMaterial(FindMaterial("PMMA"));
+  scintModel->SetFiberLength(fTowerDepth);
+  scintModel->SetCoreMaterial(FindMaterial("Polystyrene"));
 }
 
 void koBICDetectorConstruction::ModuleBuild(

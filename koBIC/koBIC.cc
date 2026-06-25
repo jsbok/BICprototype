@@ -1,6 +1,7 @@
 #include <iostream>
 #include "koBICDetectorConstruction.hh"
 #include "koBICActionInitialization.hh"
+#include "G4FastSimulationPhysics.hh"
 
 #ifdef G4MULTITHREADED
 #include "G4MTRunManager.hh"
@@ -65,6 +66,11 @@ int main(int argc, char** argv) {
   opticalPhysics->SetTrackSecondariesFirst(kScintillation, true);
 #endif
   physicsList->RegisterPhysics(opticalPhysics);
+
+  G4FastSimulationPhysics* fastsimPhysics = new G4FastSimulationPhysics();
+  fastsimPhysics->ActivateFastSimulation("opticalphoton");
+  physicsList->RegisterPhysics(fastsimPhysics);
+
   runManager->SetUserInitialization(physicsList);
   
   // User action initialization

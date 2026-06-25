@@ -1,0 +1,13 @@
+getenv = True
+universe = vanilla
+executable = 1run_3SF1B_e-_1_GeV_2026.sh
+arguments = $(ProcId)
+core_size = 0
+output = /u/user/changhui/koBIC2026/BICprototype/rootfiles/3SF1B_e-_1_GeV_2026//log/$(ProcId).out
+error = /u/user/changhui/koBIC2026/BICprototype/rootfiles/3SF1B_e-_1_GeV_2026//log/$(ProcId).err
+log = /u/user/changhui/koBIC2026/BICprototype/rootfiles/3SF1B_e-_1_GeV_2026//log/$(ProcId).log
+request_memory = 1 GB
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files =./bin, ./lib, ./init.mac, ./1run_3SF1B_e-_1_GeV_2026.mac
+queue 500

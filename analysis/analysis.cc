@@ -17,7 +17,7 @@
 #include <string>
 
 int main(int argc, char* argv[]) {
-  TString filename1 = "/home/changhui/work/BICprototype2026/BICprototype/build/koBIC/_0";
+  TString filename1 = "/u/user/changhui/koBIC2026/BICprototype/rootfiles/3SF1B_e-_1_GeV_2026/root/R3SF1B_e-_1_GeV_2026_500";
 //  TString filename1 = "/u/user/changhui/koBIC2025/BICprototype2025/rootfiles/4by8_e-_7_GeV_2025/root/R4by8_epi_7_GeV_2025_20M";
   TString filename2 = "/u/user/changhui/BICprototype2025/rootfiles/3by8_e-_1_GeV2024_slow/root/R3by8_e-_1_GeV2024_slow_10M";
 
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
   TH1F* tEdep2 = new TH1F("totEdep2",";MeV;Evt",100,low*80.,high*130.);
   tEdep2->Sumw2(); tEdep2->SetLineColor(kBlue); tEdep2->SetLineWidth(2);
 
-  TH1F* tHit_S = new TH1F("Hit_S","; reconstructed E (MeV);Evt",150, 0,30000);
+  TH1F* tHit_S = new TH1F("Hit_S","; reconstructed E (MeV);Evt",150, 0,60000);
   tHit_S->Sumw2(); tHit_S->SetLineColor(2); tHit_S->SetLineWidth(2);
   TH1F* tHit_S2 = new TH1F("Hit_S2","; reconstructed E (MeV);Evt",300,0,21000);
   tHit_S2->Sumw2(); tHit_S2->SetLineColor(kBlue); tHit_S2->SetLineWidth(2);
@@ -93,7 +93,7 @@ float Edep_Num[50] = {0};float Edep_Num2[50] = {0}; float Edep_Numm[50] = {0};
 
 if (file1==1) {
 
- TFile *file = new TFile("/home/changhui/work/BICprototype2026/BICprototype/build/analysis/100MeV_tree.root", "RECREATE");
+ TFile *file = new TFile("/u/user/changhui/koBIC2026/BICprototype/build/analysis/100MeV_tree.root", "RECREATE");
  TTree *tree = new TTree("Ttree", "Edep and Nhits ");
 // tree->SetBranchAddress("edep.Edep", &edep);
 // tree->SetBranchAddress("edep.Module", &moduleN);
@@ -345,7 +345,7 @@ tHit_S->Write();tHit_S2->Write();tHit_S3->Write();tHit_S4->Write();tHit_S5->Writ
 outputFile1->Close();   
 */
 
-   TFile *outputFile2 = new TFile("/home/changhui/work/BICprototype2026/BICprototype/build/analysis/100MeV_hist.root", "RECREATE");
+   TFile *outputFile2 = new TFile("/u/user/changhui/koBIC2026/BICprototype/build/analysis/100MeV_hist.root", "RECREATE");
 tEdep->Write(); tEdepC->Write(); tHit_S->Write();
 for (int jjj=1; jjj<51; jjj++){ 
     Edep_M[jjj]->Write();
