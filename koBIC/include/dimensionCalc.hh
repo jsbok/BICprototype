@@ -22,7 +22,7 @@ public:
   void SetNofCol(G4int NofCol) { fNofCol = NofCol; }
   void SetFrontL(G4double frontL) { fFrontL = frontL; }
   void SetTower_height(G4double tower_height) { ftower_height = tower_height; }
-  void SetPMTT(G4double PMTT) { fPMTT = PMTT; }
+  void SetSiPMT(G4double SiPMT) { fSiPMT = SiPMT; }
   void SetisModule(G4bool isModule) { fisModule = isModule; }
   void SetModule_height(G4double module_height) {fmodule_height = module_height;}
   void SetModule_width(G4double module_width) {fmodule_width = module_width; } 
@@ -31,10 +31,10 @@ public:
   G4double GetX(G4int i);
   G4double GetY(G4int i);
   G4double GetZ(G4int i);
-  G4ThreeVector GetOrigin_PMTG(G4int i);
-  G4double GetX_PMTG(G4int i);
-  G4double GetY_PMTG(G4int i);
-  G4double GetZ_PMTG(G4int i);
+  G4ThreeVector GetOrigin_SiPMG(G4int i);
+  G4double GetX_SiPMG(G4int i);
+  G4double GetY_SiPMG(G4int i);
+  G4double GetZ_SiPMG(G4int i);
 
 private:
 
@@ -44,7 +44,7 @@ private:
   G4double ftower_front;
   G4double ftower_height;
   G4double fFrontL;
-  G4double fPMTT;
+  G4double fSiPMT;
   G4bool fisModule;
   G4double fmodule_height;
   G4double fmodule_width;

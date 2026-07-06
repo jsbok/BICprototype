@@ -27,7 +27,7 @@ void koBICEventAction::BeginOfEventAction(const G4Event*) {
 	clear();
 
   G4SDManager* sdManager = G4SDManager::GetSDMpointer();
-  for (int i = 0; i < 50; i++) {
+  for (int i = 0; i < 28; i++) {
     fSiPMCollID.push_back(sdManager->GetCollectionID("ModuleC"+std::to_string(2*i)));
     fSiPMCollID.push_back(sdManager->GetCollectionID("ModuleC"+std::to_string(2*i+1)));
   }
@@ -55,7 +55,7 @@ void koBICEventAction::EndOfEventAction(const G4Event* event) {
 
 for (int iSD = 0; iSD < (int)fSiPMCollID.size(); iSD++) {
     G4int hcID = fSiPMCollID[iSD];
-    if (hcID < 0) continue; // 컬렉션 ID가 유효하지 않으면 건너뜀
+    if (hcID < 0) continue; 
 
     koBICSiPMHitsCollection* sipmHC = (koBICSiPMHitsCollection*)(hce->GetHC(hcID));
 

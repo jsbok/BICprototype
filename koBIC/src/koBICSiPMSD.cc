@@ -49,7 +49,7 @@ G4int copy1 = postStep->GetTouchable()->GetCopyNumber(1);
 
 /*
 if (volName.find("Cell") == std::string::npos) {
-        return false; // Cell이 아니면(Envelope이면) 기록하지 않고 종료
+        return false; // 
     }
 */
 /*

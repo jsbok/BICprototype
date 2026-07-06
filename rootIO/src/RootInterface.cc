@@ -57,7 +57,10 @@ void RootInterface<T>::read(T& evt) {
 
 template <typename T>
 void RootInterface<T>::write() {
-  fFile->WriteTObject(fTree);
+  if (fFile && fTree) {
+    fFile->cd();               
+    fTree->Write();            
+  }
 }
 
 template <typename T>

@@ -47,14 +47,21 @@ private:
   }
 
   void ModuleBuild(
-      G4LogicalVolume *ModuleLogical_[], G4LogicalVolume *PMTGLogical_[],
-      G4LogicalVolume *PMTfilterLogical_[], G4LogicalVolume *PMTcellLogical_[],
-      G4LogicalVolume *PMTcathLogical_[],
+      G4LogicalVolume *ModuleLogical_[], G4LogicalVolume *SiPMGLogical_[],
+      G4LogicalVolume *SiPMfilterLogical_[], G4LogicalVolume *SiPMcellLogical_[],
+      G4LogicalVolume *SiPMcathLogical_[],
+      std::vector<G4LogicalVolume *> fiberUnitIntersection_[],
+      std::vector<G4LogicalVolume *> fiberCladIntersection_[],
+      std::vector<G4LogicalVolume *> fiberClad2Intersection_[],
+      std::vector<G4LogicalVolume *> fiberCoreIntersection_[],
       std::vector<koBICInterface::koBICModuleProperty> &towerProps_);
 
-  void FiberImplement(G4int i, 
-  		      std::vector<G4LogicalVolume*> logicPbSFIL, 
-                      std::vector<G4LogicalVolume*> logicPbBulk
+  void FiberImplement(G4int i, G4LogicalVolume *ModuleLogical__[],
+                      std::vector<G4LogicalVolume *> fiberUnitIntersection__[],
+                      std::vector<G4LogicalVolume *> fiberCladIntersection__[],
+                      std::vector<G4LogicalVolume *> fiberClad2Intersection__[],
+                      std::vector<G4LogicalVolume *> fiberCoreIntersection__[],
+  		      std::vector<G4LogicalVolume *> logicPbSFIL
                       );
 
   G4bool checkOverlaps;
@@ -72,7 +79,9 @@ private:
 
   G4Region* fScintRegion;
   G4Region* fCerenRegion;
-
+  G4Region* fScintRegion_SFIL;
+  G4Region* fCerenRegion_SFIL;
+  
   G4double fFrontL;
   G4double fTowerDepth;
   G4double fModuleH;
@@ -82,11 +91,11 @@ private:
   G4double fFiber_vert_dis;
   G4double fFiber_hori_dis;
 
-  G4double PMTT;
+  G4double SiPMT;
   G4double filterT;
 
   G4bool doFiber;
-  G4bool doPMT;
+  G4bool doSiPM;
   G4bool doGlue;
 
   dimensionCalc *dimCalc;
@@ -105,6 +114,10 @@ private:
   G4Tubs *fiberClad_Bulk;
   G4Tubs *fiberCore_Bulk;
   G4Tubs *fiberGlue_Bulk;
+  G4Tubs *fiberClad;
+  G4Tubs *fiberClad2;
+  G4Tubs *fiberCoreS;
+  G4Tubs *fiberCoreS2;
   G4Box *gluebox;
 
   G4VSolid *tfiberUnitIntersection;
@@ -113,15 +126,16 @@ private:
   G4VSolid *tGlueSubtraction;
   G4VSolid *tGlueIntersection;
 
-  G4LogicalVolume *ModuleLogical[100];
-
-  G4LogicalVolume *PMTGLogical[100];
-  G4LogicalVolume *PMTcathLogical[100];
-  G4LogicalVolume *PMTcellLogical[100];
-  G4LogicalVolume *PMTfilterLogical[100];
+  G4LogicalVolume *ModuleLogical[56];
+  G4LogicalVolume *Envelope;
+  G4LogicalVolume *SiPMGLogical[56];
+  G4LogicalVolume *SiPMcathLogical[56];
+  G4LogicalVolume *SiPMcellLogical[56];
+  G4LogicalVolume *SiPMfilterLogical[56];
 
   vector<G4LogicalVolume *> fiberUnitIntersection[100];
   vector<G4LogicalVolume *> fiberCladIntersection[100];
+  vector<G4LogicalVolume *> fiberClad2Intersection[100];
   vector<G4LogicalVolume *> fiberCoreIntersection[100];
   vector<G4LogicalVolume *> glueIntersection__[100];
 
@@ -130,6 +144,7 @@ private:
 
   // G4double clad_S_rMin;
   G4double clad_S_rMax;
+  G4double clad_S_rMax2;
   // G4double clad_S_Dz  ;
   // G4double clad_S_Sphi;
   // G4double clad_S_Dphi;
@@ -147,7 +162,7 @@ private:
   std::vector<G4bool> fFiberWhich;
 
   G4LogicalVolume *worldLogical;
-
+  G4LogicalVolume *spaceLogical;
   G4String setModuleName(int i) { return std::to_string(i); }
 };
 

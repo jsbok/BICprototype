@@ -18,7 +18,8 @@
 #include "G4SDManager.hh"
 #include "G4SolidStore.hh"
 #include "G4SubtractionSolid.hh"
-
+#include "G4MultiUnion.hh"
+#include "G4Transform3D.hh"
 #include "G4Colour.hh"
 #include "G4SystemOfUnits.hh"
 
@@ -30,19 +31,23 @@ using namespace std;
 G4ThreadLocal koBICMagneticField *koBICDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager *koBICDetectorConstruction::fFieldMgr = 0;
 
+int koBICDetectorConstruction::fNofRow = 3;
+int koBICDetectorConstruction::fNofCol = 6;
+int koBICDetectorConstruction::fNofModules = fNofRow * fNofCol;
+
 koBICDetectorConstruction::koBICDetectorConstruction()
     : G4VUserDetectorConstruction(), fMessenger(0), fMaterials(NULL) {
   DefineCommands();
   DefineMaterials();
 
-  PMTT = 0.3 * mm;
+  SiPMT = 0.3 * mm;
 
   fVisAttrOrange = new G4VisAttributes(G4Colour(1.0, 0.5, 0., 0.7));
   fVisAttrOrange->SetForceSolid(true);
   fVisAttrOrange->SetVisibility(true);
   fVisAttrBlue = new G4VisAttributes(G4Colour(0., 0., 1.0, 0.7));
-  fVisAttrBlue->SetForceSolid(true);
-  fVisAttrBlue->SetVisibility(true);
+  fVisAttrBlue->SetForceSolid(false);
+  fVisAttrBlue->SetVisibility(false);
   fVisAttrGray = new G4VisAttributes(G4Colour(0.3, 0.3, 0.3, 0.2));
   fVisAttrGray->SetVisibility(true);
   fVisAttrGreen = new G4VisAttributes(G4Colour(0.3, 0.7, 0.3, 0.7));
@@ -80,63 +85,73 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
       new G4PVPlacement(0, G4ThreeVector(), worldLogical, "worldPhysical", 0, false, 0, checkOverlaps);
 
   fFrontL = 1000.; 
-  fTowerDepth = 700.; 
+  fTowerDepth = 320.; 
+  G4double fDepth = 710.;
   
-  fFiber_vert_dis = 1.22; // spacing_z
+  fFiber_vert_dis = 1.2826; // spacing_z
   fFiber_hori_dis = 1.35; // spacing_x
   
+  G4double fGlue_thickness = 0.380;
+  
   // 5 * (17.0 + 21.730) + 1 * 17.0 + 6 * 20.889 = 335.984 mm
-  fModuleH = 133.19 + 146.223; // = 279.413 mm
-  fModuleW = 710.0; // 700mm + spare space
+  fModuleH = 30; // = 279.413 mm
+  fModuleW = 30;
+  G4double fWidth = 900.0; // 700mm + spare space
   fFiberUnitH = 1.;
 
-  G4double rmin = 904.485 * mm; 
-  G4double rmax = 1037.675 * mm + (20.889 * 7) * mm; 
-  G4double totalLength = rmax - rmin * mm;
+  G4double rmin = 825.805 * mm;
+  G4double rmax = 1036.455 * mm + (30.0 * 6) * mm; 
+  G4double totalLength = rmax - rmin;
 
   G4double dPhi = (360. / 48.) * deg;
   G4double dx1 = rmin * std::tan(dPhi/2.); // Inner x
   G4double dx2 = rmax * std::tan(dPhi/2.); // Outer x
-  G4double dy  = fModuleW / 2.0;           // Width
+  G4double dy  = fWidth / 2.0;           // Width
 
   // G4Trd (name, x_half_small, x_half_large, y_half_small, y_half_large, z_half)
   G4VSolid* moduleSolid = new G4Trd("moduleSolid", dx1, dx2, dy, dy, totalLength/2.);
 
   // Vacant Space : AIR or Galactic  
-  ModuleLogical[0] = new G4LogicalVolume(moduleSolid, FindMaterial("G4_Galactic"), "ModuleLogical");
-  new G4PVPlacement(0, G4ThreeVector(0,0,0), ModuleLogical[0], "ModulePhys", worldLogical, false, 0, checkOverlaps);
+  Envelope = new G4LogicalVolume(moduleSolid, FindMaterial("G4_Galactic"), "ModuleLogical");
+  new G4PVPlacement(0, G4ThreeVector(0,0,0), Envelope, "ModulePhys", worldLogical, false, 0, checkOverlaps);
 
   doFiber = true;
-  doPMT = true;
+  doSiPM = true;
   doGlue = true;
 
   // Fiber Dimension
   clad_S_rMax = 0.50 * mm; // EcalBarrel_FiberRadius
   core_S_rMax = 0.485 * mm; // 0.50 - 0.04 (CladdingThickness)
+  clad_S_rMax2 = 0.553 * mm;
   glue_S_rMax = 0.553 * mm;
-  fiberUnit = new G4Box("fiber_SQ", (fFiberUnitH / 2) * mm, (1. / 2) * mm, (fTowerDepth / 2) * mm);
+  fiberUnit = new G4Box("fiber_SQ", (fFiberUnitH / 2) * mm, (1. / 2) * mm, (fDepth / 2) * mm);
   fiberClad_SFIL = new G4Tubs("fiberClad_SFIL", 0, clad_S_rMax, 700./ 2., 0 * deg, 360. * deg);
   fiberCore_SFIL = new G4Tubs("fiberCore_SFIL", 0, core_S_rMax, 700. / 2., 0 * deg, 360. * deg);
   fiberGlue_SFIL = new G4Tubs("fiberGlue_SFIL", 0, glue_S_rMax, 700./ 2., 0*deg, 360*deg);
 
-  fiberClad_Bulk = new G4Tubs("fiberClad_Bulk", 0, clad_S_rMax, 300. / 2., 0 * deg, 360. * deg);
-  fiberCore_Bulk = new G4Tubs("fiberCore_Bulk", 0, core_S_rMax, 300. / 2., 0 * deg, 360. * deg);
-  fiberGlue_Bulk = new G4Tubs("fiberGlue_Bulk", 0, glue_S_rMax, 300./ 2., 0*deg, 360*deg);
+  fiberUnit = new G4Box("fiber_SQ", (fFiberUnitH / 2) * mm, (1. / 2) * mm, (fTowerDepth / 2) * mm);
+  fiberClad = new G4Tubs("fiber", 0, clad_S_rMax, fTowerDepth  / 2., 0 * deg, 360. * deg);
+  fiberClad2 = new G4Tubs("fiber2", 0, clad_S_rMax2, fTowerDepth  / 2., 0 * deg, 360. * deg);
+  fiberCoreS = new G4Tubs("fiberS", 0, core_S_rMax, fTowerDepth  / 2., 0 * deg, 360. * deg);
+  gluebox = new G4Box("gluebox", (fFiber_hori_dis / 2) -0.0001 * mm, (fGlue_thickness / 2) - 0.0001 * mm, (fTowerDepth / 2.) - 0.01 * mm );
+  tGlueSubtraction = new G4SubtractionSolid("glueCladSubt", gluebox, fiberClad2, 0, G4ThreeVector(.0, .0, .0));
 
   fCerenRegion = new G4Region("cerenRegion");
   fScintRegion = new G4Region("scintRegion");
+  fCerenRegion_SFIL = new G4Region("cerenRegion_SFIL");
+  fScintRegion_SFIL = new G4Region("scintRegion_SFIL");
 
   dimCalc = new dimensionCalc();
   dimCalc->SetFrontL(fFrontL);
   dimCalc->SetTower_height(fTowerDepth);
-  dimCalc->SetPMTT(PMTT);
+  dimCalc->SetSiPMT(SiPMT);
   dimCalc->SetNofModules(1);
   dimCalc->SetNofRow(1);
   dimCalc->SetNofCol(1);
   dimCalc->SetModule_height(fModuleH);
   dimCalc->SetModule_width(fModuleW);
 
-  ModuleBuild(ModuleLogical, PMTGLogical, PMTfilterLogical, PMTcellLogical, PMTcathLogical, fModuleProp);
+  ModuleBuild(ModuleLogical, SiPMGLogical, SiPMfilterLogical, SiPMcellLogical, SiPMcathLogical, fiberUnitIntersection, fiberCladIntersection, fiberClad2Intersection, fiberCoreIntersection, fModuleProp);
 
   delete dimCalc;
   return worldPhysical;
@@ -147,8 +162,9 @@ void koBICDetectorConstruction::ConstructSDandField() {
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
     G4LogicalVolumeStore* lvStore = G4LogicalVolumeStore::GetInstance();
 
-    if (doPMT) {
-        for (int i = 0; i < 50; i++) {
+if (doSiPM) {
+        // SiPM Definition [0 - 28]
+        for (int i = 0; i < 28; i++) {
             G4String nameL = "ModuleSD_L_" + std::to_string(i);
             G4String nameR = "ModuleSD_R_" + std::to_string(i);
             G4String collL = "ModuleC" + std::to_string(2 * i);
@@ -156,6 +172,11 @@ void koBICDetectorConstruction::ConstructSDandField() {
 
             int idL = 2 * i;
             int idR = 2 * i + 1;
+
+            if (i >= (int)fModuleProp.size()) {
+                G4cout << "[Warning] fModuleProp size is smaller than 28! Index: " << i << G4endl;
+                break; 
+            }
 
             koBICSiPMSD* SiPMSD_L = new koBICSiPMSD(nameL, collL, 0, fModuleProp.at(i), idL);
             koBICSiPMSD* SiPMSD_R = new koBICSiPMSD(nameR, collR, 1, fModuleProp.at(i), idR);
@@ -175,12 +196,12 @@ void koBICDetectorConstruction::ConstructSDandField() {
             G4LogicalVolume* targetCell_L = lvStore->GetVolume(lvNameL_Cell);
             G4LogicalVolume* targetCell_R = lvStore->GetVolume(lvNameR_Cell);
 
-            // Left Assignmnet
+            // Left Assignment
             if (targetLV_L) {
                 targetLV_L->SetSensitiveDetector(SiPMSD_L);
                 if (targetCell_L) targetCell_L->SetSensitiveDetector(SiPMSD_L);
             }
-            // Right Assignmnet
+            // Right Assignment
             if (targetLV_R) {
                 targetLV_R->SetSensitiveDetector(SiPMSD_R);
                 if (targetCell_R) targetCell_R->SetSensitiveDetector(SiPMSD_R);
@@ -193,20 +214,31 @@ void koBICDetectorConstruction::ConstructSDandField() {
   cerenModel->SetCoreMaterial(FindMaterial("PMMA"));
   scintModel->SetFiberLength(fTowerDepth);
   scintModel->SetCoreMaterial(FindMaterial("Polystyrene"));
+ 
+  FastOpTransportModel* cerenModel_SFIL = new FastOpTransportModel("fastOpTransportCeren_SFIL", fCerenRegion_SFIL); 
+  FastOpTransportModel* scintModel_SFIL = new FastOpTransportModel("fastOpTransportScint_SFIL", fScintRegion_SFIL);
+  cerenModel_SFIL->SetFiberLength(700.0 * mm); 
+  cerenModel_SFIL->SetCoreMaterial(FindMaterial("PMMA"));
+  scintModel_SFIL->SetFiberLength(700.0 * mm); 
+  scintModel_SFIL->SetCoreMaterial(FindMaterial("Polystyrene"));
 }
 
 void koBICDetectorConstruction::ModuleBuild(
     G4LogicalVolume *ModuleLogical_[], 
-    G4LogicalVolume *PMTGLogical_[],
-    G4LogicalVolume *PMTfilterLogical_[], 
-    G4LogicalVolume *PMTcellLogical_[],
-    G4LogicalVolume *PMTcathLogical_[],
+    G4LogicalVolume *SiPMGLogical_[],
+    G4LogicalVolume *SiPMfilterLogical_[], 
+    G4LogicalVolume *SiPMcellLogical_[],
+    G4LogicalVolume *SiPMcathLogical_[],
+    std::vector<G4LogicalVolume *> fiberUnitIntersection_[],
+    std::vector<G4LogicalVolume *> fiberCladIntersection_[],
+    std::vector<G4LogicalVolume *> fiberClad2Intersection_[],
+    std::vector<G4LogicalVolume *> fiberCoreIntersection_[],
     std::vector<koBICInterface::koBICModuleProperty> &ModuleProp_) {
     G4Material* pbMat = FindMaterial("Lead");
     G4Material* vacMat = FindMaterial("G4_Galactic");
 
     // Trapezoid dimensions (dx1, dx2, dy, dz)
-    G4Trd* parentTrd = (G4Trd*)ModuleLogical_[0]->GetSolid();
+    G4Trd* parentTrd = (G4Trd*)Envelope->GetSolid();
     G4double pDx1 = parentTrd->GetXHalfLength1();
     G4double pDx2 = parentTrd->GetXHalfLength2();
     G4double pDy  = parentTrd->GetYHalfLength1() - 5;
@@ -216,70 +248,95 @@ void koBICDetectorConstruction::ModuleBuild(
     int copyNo = 0;
 
     // Layer production
-    auto PlaceTrdLayer = [&](G4String name, G4double thick, G4Material* mat, G4VisAttributes* vis, G4double customDy = -1.0) -> G4LogicalVolume* {
-    G4double zStart = currentZ + pDz; 
-    G4double zEnd   = zStart + thick;
+    auto PlaceTrdLayerAt = [&](G4String name, G4double thick, G4double zCenter, G4Material* mat, G4VisAttributes* vis, G4double customDy = -1.0) -> G4LogicalVolume* {
+        
+        G4double zStart = (zCenter - thick / 2.0) + pDz; 
+        G4double zEnd   = zStart + thick;
 
-    G4double layerDx1 = pDx1 + (pDx2 - pDx1) * (zStart / (2 * pDz));
-    G4double layerDx2 = pDx1 + (pDx2 - pDx1) * (zEnd / (2 * pDz));
+        G4double layerDx1 = pDx1 + (pDx2 - pDx1) * (zStart / (2 * pDz));
+        G4double layerDx2 = pDx1 + (pDx2 - pDx1) * (zEnd / (2 * pDz));
 
-    G4double currentDy = (customDy > 0) ? customDy : pDy;
+	G4double currentDy = 350 *mm;
+        G4VSolid* layerSolid = new G4Trd(name + "_sol", layerDx1, layerDx2, currentDy, currentDy, thick / 2.0);
+        G4LogicalVolume* logVol = new G4LogicalVolume(layerSolid, mat, name + "_log");
+        
+        if(vis) logVol->SetVisAttributes(vis);
 
-    G4VSolid* layerSolid = new G4Trd(name + "_sol", layerDx1, layerDx2, currentDy, currentDy, thick / 2.0);
-    G4LogicalVolume* logVol = new G4LogicalVolume(layerSolid, mat, name + "_log");
+        new G4PVPlacement(0, G4ThreeVector(0, 0, zCenter), 
+                          logVol, name + "_phys", Envelope, false, copyNo++, checkOverlaps);
+        
+        return logVol;
+    };
+
+    std::vector<G4LogicalVolume*> logicPbSFIL;
+
+    G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm);
+
+    // 3. [Reverse] 17mm vacuum -> 21.73mm SFIL 
+    for(int r = 0; r < 2; r++) {
+        G4double vacThick = 17.0 * mm;
+        currentBoundaryZ -= vacThick; // 
+        G4double zCenterVac = currentBoundaryZ + (vacThick / 2.0); 
+        
+        PlaceTrdLayerAt("Vac_SFIL", vacThick, zCenterVac, vacMat, fVisAttrBlue);
+        
+        G4double sfilThick = 21.73 * mm;
+        currentBoundaryZ -= sfilThick; 
+        G4double zCenterSfil = currentBoundaryZ + (sfilThick / 2.0);
+        
+        fVisAttrGray->SetColour(G4Colour(0.5, 0.5, 0.5, 0.5)); 
+        fVisAttrGray->SetForceSolid(true);
+        
+        G4LogicalVolume* tmpPbSFIL = PlaceTrdLayerAt("Pb_SFIL", sfilThick, zCenterSfil, pbMat, 0);
+        logicPbSFIL.push_back(tmpPbSFIL); 
+    }
+    G4double endVacThick = 17.0 * mm;
+    currentBoundaryZ -= endVacThick; // 
+    G4double zCenterEndVac = currentBoundaryZ + (endVacThick / 2.0);
+
+    PlaceTrdLayerAt("Vac_SFIL_End", endVacThick, zCenterEndVac, vacMat, fVisAttrBlue);
     
-    if(vis) logVol->SetVisAttributes(vis);
+    G4RotationMatrix* zRot = new G4RotationMatrix;
+    zRot->rotateZ(M_PI/2.*rad);
 
-    new G4PVPlacement(0, G4ThreeVector(0, 0, currentZ + thick / 2.0), 
-                      logVol, name + "_phys", ModuleLogical_[0], false, copyNo++, checkOverlaps);
-    
-    currentZ += thick;
-    return logVol;
-};
+    for (int i = 0; i < fNofModules; i++) {
+    moduleName = setModuleName(i);
 
+    dimCalc->SetisModule(true);
+    module = new G4Box("Module", (fTowerDepth / 2.) * mm, (fModuleH / 2.) * mm, (fModuleW / 2.) * mm);
+    ModuleLogical_[i] = new G4LogicalVolume(module, FindMaterial("Lead"), moduleName);
+        
+        int quotient  = i / 3; // Z-Axis(0, 0, 0, 1, 1, 1, ..., 5, 5, 5) -> 6 Coloums
+        int remainder = i % 3; // X-Axis (0, 1, 2, 0, 1, 2, ..., 0, 1, 2) -> 3 Rows
 
-std::vector<G4LogicalVolume*> logicPbSFIL;
-std::vector<G4LogicalVolume*> logicPbBulk;
-
-for(int r = 0; r < 3; r++) {
-    fVisAttrBlue->SetVisibility(false);
-    PlaceTrdLayer("Vac_SFIL", 17.0*mm, vacMat, fVisAttrBlue);
-    
-    fVisAttrGray->SetColour(G4Colour(0.5, 0.5, 0.5, 0.5)); 
-    fVisAttrGray->SetForceSolid(true);
-    
-    G4LogicalVolume* tmpPbSFIL = PlaceTrdLayer("Pb_SFIL", 21.73*mm, pbMat, fVisAttrGray);
-    logicPbSFIL.push_back(tmpPbSFIL); 
-}
-
-fVisAttrBlue->SetVisibility(false);
-PlaceTrdLayer("Vac_SFIL_End", 17.0*mm, vacMat, fVisAttrBlue);
-
-G4double bulkHalfHeight = (300.0 * mm) / 2.0; 
-
-// --- Bulk  ---
-for(int r = 0; r < 7; r++) {
-    fVisAttrGray->SetVisibility(true);
-    fVisAttrGray->SetForceSolid(true);
-    
-    G4LogicalVolume* tmpPbBulk = PlaceTrdLayer("Pb_Bulk", 20.889*mm, pbMat, fVisAttrGray, bulkHalfHeight);
-    logicPbBulk.push_back(tmpPbBulk);
-}
+        // 1. X: -30, 0, +30 mm
+        G4double xPos = -30.0 * mm + (30.0 * remainder * mm);
+        
+        // 2. Y: 0
+        G4double yPos = 0.0 * mm;
+        
+        // 3. Z: quotient * (0~5)
+        G4double zCenter = pDz - (30.0 * 6.0 * mm) + (30.0 * quotient * mm) + 15.0 * mm;
+        
+        new G4PVPlacement(zRot, G4ThreeVector(xPos, yPos, zCenter), ModuleLogical_[i], moduleName,
+                          Envelope, false, 100+i, checkOverlaps);
 
     // Fiber arrangement
-    FiberImplement(0, logicPbSFIL, logicPbBulk);
+    FiberImplement(i, ModuleLogical_, fiberUnitIntersection_,
+                   fiberCladIntersection_,fiberClad2Intersection_, fiberCoreIntersection_, logicPbSFIL);
+    }
 
     // =========================================================
-    // 3. PMT
+    // 3. SiPM
     // =========================================================
-if (doPMT) {
+if (doSiPM) {
     G4double sipmSize = 16.0 * mm;
-    G4double sipmThick = PMTT;      // 0.3mm
-    G4double cathThick = PMTT;      
+    G4double sipmThick = SiPMT;      // 0.3mm
+    G4double cathThick = SiPMT;      
 
     std::vector<G4double> layerThicks = {
-        17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm,
-        20.889*mm, 20.889*mm, 20.889*mm, 20.889*mm, 20.889*mm, 20.889*mm, 20.889*mm
+        17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm,
+        30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm
     };
 
     G4double runningZ = -pDz;
@@ -287,17 +344,21 @@ if (doPMT) {
 
 
   fVisAttrSkyBlue = new G4VisAttributes(G4Colour(0.5, 0.8, 0.9, 0.5));
-  fVisAttrSkyBlue->SetVisibility(true);
-  fVisAttrSkyBlue->SetForceSolid(true);
+  fVisAttrSkyBlue->SetVisibility(false);
+  fVisAttrSkyBlue->SetForceSolid(false);
+
+  fVisAttrBlue = new G4VisAttributes(G4Colour(0., 0., 1.0, 0.5));
+  fVisAttrBlue->SetForceSolid(true);
+  fVisAttrBlue->SetVisibility(true);
 
     G4VSolid* sipmCellSolid = new G4Box("SiPMCellSolid", sipmSize/2., sipmThick/2., sipmSize/2.);
     G4VSolid* sipmCathSolid = new G4Box("SiPMCathSolid", sipmSize/2., cathThick/2., sipmSize/2.);
 
-    for (int i = 0; i < 14; i++) {
+    for (int i = 0; i < 10; i++) {
 
         G4double thick = layerThicks[i];
         G4double zCenter = runningZ + thick/2.0;
-        bool isPbLayer = (i == 1 || i == 3 || i == 5 || i >= 7);
+        bool isPbLayer = (i == 7 || i == 9 ||  i >= 11);
 
 if (isPbLayer) {
         G4double currentDy = (i >= 7) ? (150.0 * mm) : pDy;
@@ -314,39 +375,91 @@ if (isPbLayer) {
             G4String nameCathR = "ModuleC_Cath" + std::to_string(2 * s + 1);
 
             // 1. Glass Cell 
-            PMTcellLogical_[2 * s] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellL);
-            PMTcellLogical_[2 * s + 1] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellR);
+            SiPMcellLogical_[2 * s] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellL);
+            SiPMcellLogical_[2 * s + 1] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellR);
             
             // 2. Silicon Cathode
-            PMTcathLogical_[2 * s] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathL);
-            PMTcathLogical_[2 * s + 1] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathR);
+            SiPMcathLogical_[2 * s] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathL);
+            SiPMcathLogical_[2 * s + 1] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathR);
 
-            new G4PVPlacement(0, G4ThreeVector(), PMTcathLogical_[2 * s], nameCathL + "_phys", PMTcellLogical_[2 * s], false, 2 * s, checkOverlaps);
-            new G4PVPlacement(0, G4ThreeVector(), PMTcathLogical_[2 * s + 1], nameCathR + "_phys", PMTcellLogical_[2 * s + 1], false, 2 * s + 1, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s], nameCathL + "_phys", SiPMcellLogical_[2 * s], false, 2 * s, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s + 1], nameCathR + "_phys", SiPMcellLogical_[2 * s + 1], false, 2 * s + 1, checkOverlaps);
 
             // 3. Glass Cell Arrangement
             G4double xPos = -currentDx + (xIdx + 0.5) * stepX;
-            G4double yPos_L = -(currentDy + sipmThick / 2.);
-            G4double yPos_R =  (currentDy + sipmThick / 2.);
+            G4double yPos_L = -(350*mm + sipmThick / 2.);
+            G4double yPos_R =  (350*mm + sipmThick / 2.);
 
-            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_L, zCenter), PMTcellLogical_[2 * s], nameCellL + "_phys", ModuleLogical_[0], false, 2 * s, checkOverlaps);
-            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_R, zCenter), PMTcellLogical_[2 * s + 1], nameCellR + "_phys", ModuleLogical_[0], false, 2 * s + 1, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_L, zCenter), SiPMcellLogical_[2 * s], nameCellL + "_phys", Envelope, false, 2 * s, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_R, zCenter), SiPMcellLogical_[2 * s + 1], nameCellR + "_phys", Envelope, false, 2 * s + 1, checkOverlaps);
 
             // 4. Optical Surface
-            new G4LogicalSkinSurface(nameCathL + "_surf", PMTcathLogical_[2 * s], FindSurface("SiPMSurf"));
-            new G4LogicalSkinSurface(nameCathR + "_surf", PMTcathLogical_[2 * s + 1], FindSurface("SiPMSurf"));
+            new G4LogicalSkinSurface(nameCathL + "_surf", SiPMcathLogical_[2 * s], FindSurface("SiPMSurf"));
+            new G4LogicalSkinSurface(nameCathR + "_surf", SiPMcathLogical_[2 * s + 1], FindSurface("SiPMSurf"));
 
-            PMTcathLogical_[2 * s]->SetVisAttributes(fVisAttrGreen);
-            PMTcathLogical_[2 * s + 1]->SetVisAttributes(fVisAttrGreen);
+            SiPMcathLogical_[2 * s]->SetVisAttributes(fVisAttrGreen);
+            SiPMcathLogical_[2 * s + 1]->SetVisAttributes(fVisAttrGreen);
             
         }
         pbLayerIdx++;
     }
         runningZ += thick;
     }
+G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm); // Bulk
+
+    // X (+30, 0, -30)
+    std::vector<G4double> xPatterns = {30.0 * mm, 0.0 * mm, -30.0 * mm};
+    
+    // Z (repeat 6)
+    int zRepeat = 6;
+    G4double zGap = 30.0 * mm; // 디텍터간 Z축 간격 (필요시 조정 가능)
+
+    // 3x6 Z arrangement
+    G4double startZ = bulkBoundaryZ +  zGap / 2.0;
+
+    int arrayIdx = 0;
+    for (int zIdx = 0; zIdx < zRepeat; zIdx++) {          // 6 Z
+        for (int xIdx = 0; xIdx < 3; xIdx++) {          // 3 X (+30, 0, -30)
+            
+            // ID Assignment (10 ~ 27)
+            int s = 10 + arrayIdx; 
+
+            G4String nameCellL = "ModuleC_Cell" + std::to_string(2 * s);
+            G4String nameCellR = "ModuleC_Cell" + std::to_string(2 * s + 1);
+            G4String nameCathL = "ModuleC_Cath" + std::to_string(2 * s);
+            G4String nameCathR = "ModuleC_Cath" + std::to_string(2 * s + 1);
+
+            SiPMcellLogical_[2 * s] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellL);
+            SiPMcellLogical_[2 * s + 1] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellR);
+            SiPMcathLogical_[2 * s] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathL);
+            SiPMcathLogical_[2 * s + 1] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathR);
+
+            new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s], nameCathL + "_phys", SiPMcellLogical_[2 * s], false, 2 * s, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s + 1], nameCathR + "_phys", SiPMcellLogical_[2 * s + 1], false, 2 * s + 1, checkOverlaps);
+
+            // 
+            G4double xPos = xPatterns[xIdx];
+            G4double yPos_L = -(160*mm + sipmThick / 2.); // 
+            G4double yPos_R =  (160*mm + sipmThick / 2.); // 
+            
+            G4double zPos = startZ + (zIdx * zGap);
+
+            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_L, zPos), SiPMcellLogical_[2 * s], nameCellL + "_phys", Envelope, false, 2 * s, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_R, zPos), SiPMcellLogical_[2 * s + 1], nameCellR + "_phys", Envelope, false, 2 * s + 1, checkOverlaps);
+
+            new G4LogicalSkinSurface(nameCathL + "_surf", SiPMcathLogical_[2 * s], FindSurface("SiPMSurf"));
+            new G4LogicalSkinSurface(nameCathR + "_surf", SiPMcathLogical_[2 * s + 1], FindSurface("SiPMSurf"));
+
+            SiPMcathLogical_[2 * s]->SetVisAttributes(fVisAttrGreen);
+            SiPMcathLogical_[2 * s + 1]->SetVisAttributes(fVisAttrGreen);
+
+            arrayIdx++;
+        }
+    }
 }
 
-for (int s = 0; s < 50; s++) {
+
+for (int s = 0; s < 28; s++) {
     koBICInterface::koBICModuleProperty ModulePropSingle;
     ModulePropSingle.towerXY = fTowerXY;
     ModulePropSingle.ModuleNum = s; // 0~49
@@ -356,9 +469,41 @@ for (int s = 0; s < 50; s++) {
 
 void koBICDetectorConstruction::DefineCommands() {}
 void koBICDetectorConstruction::FiberImplement(
-    G4int i, 
-    std::vector<G4LogicalVolume*> logicPbSFIL, 
-    std::vector<G4LogicalVolume*> logicPbBulk) {
+    G4int i, G4LogicalVolume *ModuleLogical__[],
+    std::vector<G4LogicalVolume *> fiberUnitIntersection__[],
+    std::vector<G4LogicalVolume *> fiberCladIntersection__[],
+    std::vector<G4LogicalVolume *> fiberClad2Intersection__[],
+    std::vector<G4LogicalVolume *> fiberCoreIntersection__[],
+    std::vector<G4LogicalVolume*> logicPbSFIL) {
+
+  fFiberX.clear();
+  fFiberY.clear();
+  fFiberWhich.clear();
+
+  int NofPlate = fModuleH / (fFiber_vert_dis) ;
+  int NofFiber = fModuleW / (fFiber_hori_dis);
+  fTowerXY = std::make_pair(NofPlate, NofFiber);
+
+  G4bool fWhich = false;
+  for (int k = 0; k < NofPlate; k++) {
+    for (int j = 0; j < NofFiber; j++) {
+      /*
+        ? fX : # of plate , fY : # of fiber in the plate
+      */
+      if (fWhich && j == NofFiber - 1)
+        break;
+      G4float fX = -fModuleH * mm / 2 + k * fFiber_vert_dis * mm +
+                   fFiber_vert_dis / 2 * mm;
+      G4float fY = -fModuleW * mm / 2 + j * fFiber_hori_dis * mm +
+                   fFiber_hori_dis / 2 * mm;
+      if (fWhich)
+        fY += fFiber_hori_dis / 2 * mm;
+      fFiberX.push_back(fX);
+      fFiberY.push_back(fY);
+      fFiberWhich.push_back(fWhich);
+    }
+    fWhich = !fWhich;
+  }
 
     if (!doFiber) return;
 
@@ -367,11 +512,159 @@ void koBICDetectorConstruction::FiberImplement(
     fVisAttrSkyBlue->SetForceSolid(true);
 
     G4RotationMatrix* fiberRot = new G4RotationMatrix();
-    fiberRot->rotateX(90 * deg); 
+    fiberRot->rotateY(90 * deg); 
+    G4RotationMatrix* fiberRot2 = new G4RotationMatrix();
+    fiberRot2->rotateX(90 * deg); 
 
     G4double pitch_horizontal = 1.35 * mm; 
     G4double pitch_vertical = 1.22 * mm;   
     int fiberId = 0;
+
+  if (doFiber) {
+    for (unsigned int fiberId = 0; fiberId < fFiberX.size(); fiberId++) {
+
+      fiberClad2Intersection__[i].push_back(new G4LogicalVolume(
+          fiberClad2, FindMaterial("G4_Galactic"), name));
+      new G4PVPlacement(
+          fiberRot, G4ThreeVector(0, fFiberX.at(fiberId), fFiberY.at(fiberId)), 
+          fiberClad2Intersection__[i].at(fiberId), name, ModuleLogical__[i],
+          false, fiberId, checkOverlaps);
+
+      fiberCladIntersection__[i].push_back(new G4LogicalVolume(
+          fiberClad, FindMaterial("PMMA"), name));
+      new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
+                        fiberCladIntersection__[i].at(fiberId), name,
+                        fiberClad2Intersection__[i].at(fiberId), false, fiberId,
+                        checkOverlaps);
+
+      fiberCoreIntersection__[i].push_back(new G4LogicalVolume(
+          fiberCoreS, FindMaterial("Polystyrene"), name));
+      new G4PVPlacement(0, G4ThreeVector(0., 0., 0.),
+                        fiberCoreIntersection__[i].at(fiberId), name,
+                        fiberCladIntersection__[i].at(fiberId), false, fiberId,
+                        checkOverlaps);
+
+      fiberClad2Intersection__[i].at(fiberId)->SetVisAttributes(fVisAttrSkyBlue);
+      fiberCladIntersection__[i].at(fiberId)->SetVisAttributes(fVisAttrGray);
+      fiberCoreIntersection__[i].at(fiberId)->SetVisAttributes(fVisAttrOrange);
+
+      fScintRegion->AddRootLogicalVolume(fiberCladIntersection__[i].at(fiberId));
+      fScintRegion->AddRootLogicalVolume(fiberCoreIntersection__[i].at(fiberId));
+      fiberCladIntersection__[i].at(fiberId)->SetRegion(fScintRegion);
+      fiberCoreIntersection__[i].at(fiberId)->SetRegion(fScintRegion);
+
+//    G4VSolid*module2 = new G4Box("Module2", (fTowerDepth / 2.) -1 * mm, (fModuleH / 2.) -1 * mm, (fModuleW / 2.) -1 * mm);
+
+      if (doGlue) {
+        // 1. Glue Intersection 
+        G4RotationMatrix* glueRotB = new G4RotationMatrix(fiberRot->inverse());
+        G4ThreeVector glueTransB(0, -fFiberX.at(fiberId), -fFiberY.at(fiberId));
+        glueTransB.transform(*glueRotB); // 
+
+        tGlueIntersection = new G4IntersectionSolid(
+            "glue", tGlueSubtraction, module, glueRotB, glueTransB);
+            
+        glueIntersection__[i].push_back(new G4LogicalVolume(
+            tGlueIntersection, FindMaterial("G4_Galactic"),
+            std::string(name) + "_glue_" + std::to_string(fiberId)));
+            
+        new G4PVPlacement(
+            fiberRot, G4ThreeVector(0, fFiberX.at(fiberId), fFiberY.at(fiberId)),
+            glueIntersection__[i].at(fiberId),
+            std::string(name) + "_glue_" + std::to_string(fiberId),
+            ModuleLogical__[i], false, fiberId, checkOverlaps);
+       }
+
+
+   }
+        G4float y1 = fModuleW * mm / 2;
+        G4float y2 = - fModuleW * mm / 2 + 22 * fFiber_hori_dis * mm  ;
+        G4float y3 = 14.85; G4float y4 = 14.1125; G4float y5 = -14.4125;
+
+        for (int k2=1; k2 < 12; k2++  )  {
+          G4float x1 = -fModuleH * mm / 2 + k2 * 2 * fFiber_vert_dis * mm -
+                       fFiber_vert_dis / 2 * mm;
+
+          // --- Air1 Intersection & Placement ---
+          G4RotationMatrix* airRotB1 = new G4RotationMatrix(fiberRot->inverse());
+          G4ThreeVector airTransB1(0, -x1, -y1); 
+          airTransB1.transform(*airRotB1);
+
+          G4IntersectionSolid* tAirIntersection1 = new G4IntersectionSolid(
+              "Air1", fiberClad, module, airRotB1, airTransB1);
+              
+          G4LogicalVolume* logicAir1 = new G4LogicalVolume(
+              tAirIntersection1, FindMaterial("G4_Galactic"), "Air"+std::to_string(i)+std::to_string(k2));
+              
+          new G4PVPlacement(
+              fiberRot, G4ThreeVector(0, x1, -y1),
+              logicAir1, "AirPhysical"+std::to_string(i)+std::to_string(k2), ModuleLogical__[i],
+              false, k2, false);
+
+          // --- Air2 Intersection & Placement ---
+          G4RotationMatrix* airRotB2 = new G4RotationMatrix(fiberRot->inverse());
+          G4ThreeVector airTransB2(0, -x1, y2);
+          airTransB2.transform(*airRotB2);
+
+          G4IntersectionSolid* tAirIntersection2 = new G4IntersectionSolid(
+              "Air2", fiberClad, module, airRotB2, airTransB2);
+              
+          G4LogicalVolume* logicAir2 = new G4LogicalVolume(
+              tAirIntersection2, FindMaterial("G4_Galactic"), "Air"+std::to_string(i)+std::to_string(k2));
+              
+          new G4PVPlacement(
+              fiberRot, G4ThreeVector(0, x1, y2),
+              logicAir2, "AirPhysical2"+std::to_string(i)+std::to_string(k2), ModuleLogical__[i],
+              false, k2, false);
+
+          logicAir1 -> SetVisAttributes(fVisAttrSkyBlue);
+          logicAir2 -> SetVisAttributes(fVisAttrSkyBlue);     
+
+          // --- Space3 & Space4 Placement ---
+          G4VSolid *space3 = new G4Box("glue4", (0.175 / 2.) - 0.0001 * mm,
+                            (0.38 / 2.) - 0.0001 * mm, (320. / 2.) - 0.0001 * mm);
+                            
+          G4LogicalVolume* spaceLogical3 = new G4LogicalVolume(
+              space3, FindMaterial("G4_Galactic"), "spaceLogical3"+std::to_string(i));
+              
+          new G4PVPlacement(
+              fiberRot, G4ThreeVector(0, x1, y4), spaceLogical3, 
+              "spacePhysical3"+std::to_string(i), ModuleLogical__[i], false, 0, checkOverlaps);
+
+          spaceLogical3 -> SetVisAttributes(fVisAttrSkyBlue); 
+         
+          G4LogicalVolume* spaceLogical4 = new G4LogicalVolume(
+              space3, FindMaterial("G4_Galactic"), "spaceLogical4"+std::to_string(i));
+              
+          new G4PVPlacement(
+              fiberRot, G4ThreeVector(0, x1, y5), spaceLogical4, 
+              "spacePhysical4"+std::to_string(i), ModuleLogical__[i], false, 0, checkOverlaps);
+              
+          spaceLogical4 -> SetVisAttributes(fVisAttrSkyBlue);
+        }
+
+        // space 3
+        for (int k2=1; k2 < 13; k2++  )  {   
+          G4float x2 = -fModuleH * mm / 2 + k2 * 2 * fFiber_vert_dis * mm -
+                       3 * fFiber_vert_dis / 2 * mm;
+
+          G4VSolid *space2 = new G4Box("glue3", (0.3 / 2.) * mm,
+                            (0.38 / 2.) * mm, (320. / 2.) - 0.0001 * mm );
+                            
+          G4LogicalVolume* spaceLogical2 = new G4LogicalVolume(
+              space2, FindMaterial("G4_Galactic"), "spaceLogical2"+std::to_string(i));
+              
+          new G4PVPlacement(
+              fiberRot, G4ThreeVector(0, x2, y3), spaceLogical2, 
+              "spacePhysical2"+std::to_string(i), ModuleLogical__[i], false, 0, checkOverlaps);
+
+          spaceLogical2 -> SetVisAttributes(fVisAttrSkyBlue);
+        }
+
+        glueIntersection__[i].at(fiberId)->SetVisAttributes(fVisAttrSkyBlue);
+      
+    
+  }
 
     auto FillFibersInMother = [&](G4LogicalVolume* motherLog, G4double thickness, G4LogicalVolume* targetGlueLog, G4double zLength, G4double glue_thickness) {
 
@@ -386,53 +679,51 @@ void koBICDetectorConstruction::FiberImplement(
         G4double maxHalfWidth = std::max(h1, h2);
         int fixedNumCols = std::floor((2.0 * maxHalfWidth - 1.0 * mm) / pitch_horizontal);
         G4double startH = -((fixedNumCols - 1) * pitch_horizontal) / 2.0;
-
-        // Fiber Row Loop
+        
+// Fiber Row Loop
         for (int k = 0; k < numRows; k++) {
-
             G4double localV = startV + k * pitch_vertical;
             G4double currentHalfWidth = h1 + (h2 - h1) * (localV + zHalf) / (2.0 * zHalf);
             bool isShifted = (k % 2 != 0);
 
-            // -----------------------------------------------------------------
-            G4VSolid* rowGlueTrdSolid = new G4Trd("RowGlueTrdBase", zLength / 2.0, zLength / 2.0, glue_thickness / 2.0, glue_thickness / 2.0, zHalf);
-
-            G4IntersectionSolid* trimmedRowGlueSolid = new G4IntersectionSolid(
-                "TrimmedRowGlue", rowGlueTrdSolid, motherSolid, nullptr, G4ThreeVector(0., 0., -localV)
-            );
-
-	    if (doGlue) {
-                // - (X): Row Width (currentHalfWidth)
-                // - (Y): Glue Thickness (glue_thickness / 2.0)
-                // - (Z): Fiber Length (zLength / 2.0) 
-                G4VSolid* rowGlueSolid = new G4Box("RowGlueBox", currentHalfWidth, glue_thickness / 2.0, zLength / 2.0);
-
-              /*
-                G4double sizeX = currentHalfWidth * 2.0;   //  width
-                G4double sizeY = glue_thickness;          // 0.233 mm
-                G4double sizeZ = zLength;                 // 300 mm or 700 mm (Fiber Length)
-
-                G4cout << "[Layer " << i << " - Row " << k << "] Size X: " << sizeX/mm << " mm | Size Y: " << sizeY/mm << " mm | Size Z: " << sizeZ/mm << " mm" << G4endl;
-*/
-                G4LogicalVolume* rowGlueLog = new G4LogicalVolume(rowGlueSolid, FindMaterial("Glue"), "rowGlue_Log");
-                rowGlueLog->SetVisAttributes(fVisAttrSkyBlue);
-                glueIntersection__[i].push_back(rowGlueLog);
-
-                new G4PVPlacement(fiberRot, G4ThreeVector(0, 0, localV), rowGlueLog, "rowGlue_Phys", motherLog, false, k, false);
+            G4MultiUnion* combinedFibersSolid = nullptr;
+            if (doGlue) {
+                combinedFibersSolid = new G4MultiUnion("CombinedFibers");
             }
-            // -----------------------------------------------------------------
 
-            // Fiber Arrangement Loop
             for (int j = 0; j < fixedNumCols; j++) {
                 G4double localH = startH + j * pitch_horizontal;
                 if (isShifted) localH += pitch_horizontal / 2.0;
 
                 if (std::abs(localH) + 0.553 * mm > currentHalfWidth - 0.1 * mm) continue;
 
-                new G4PVPlacement(fiberRot, G4ThreeVector(localH, 0, localV), targetGlueLog, "fiberGlue_Phys", motherLog, false, fiberId, false);
+                new G4PVPlacement(fiberRot2, G4ThreeVector(localH, 0, localV), targetGlueLog, "fiberGlue_Phys", motherLog, false, fiberId, false);
                 fiberId++;
+
+                if (doGlue && combinedFibersSolid != nullptr) {
+                    G4RotationMatrix rot = (fiberRot2 ? *fiberRot2 : G4RotationMatrix());
+                    G4Transform3D transform(rot, G4ThreeVector(localH, 0, 0));
+                    
+                    combinedFibersSolid->AddNode(*(targetGlueLog->GetSolid()), transform);
+                }
+            }
+
+            if (doGlue && combinedFibersSolid != nullptr) {
+
+                combinedFibersSolid->Voxelize();
+
+                G4VSolid* rowGlueBox = new G4Box("RowGlueBox", currentHalfWidth- 0.01 * mm, (700. / 2.0) - 0.001 * mm, 0.233 / 2.0);
+                
+                G4VSolid* finalGlueSolid = new G4SubtractionSolid("SubtractedGlue", rowGlueBox, combinedFibersSolid, nullptr, G4ThreeVector(0, 0, 0));
+
+                G4LogicalVolume* rowGlueLog = new G4LogicalVolume(finalGlueSolid, FindMaterial("Glue"), "rowGlue_Log");
+                rowGlueLog->SetVisAttributes(fVisAttrSkyBlue);
+                glueIntersection__[i].push_back(rowGlueLog);
+
+                new G4PVPlacement(nullptr, G4ThreeVector(0, 0, localV), rowGlueLog, "rowGlue_Phys", motherLog, false, k, false);
             }
         }
+        
     };
 
     // [SFIL Layers Loop]
@@ -440,6 +731,11 @@ void koBICDetectorConstruction::FiberImplement(
         G4LogicalVolume* glueLog_SFIL = new G4LogicalVolume(fiberGlue_SFIL, FindMaterial("Glue"), "fGlue_SFIL_L");
         G4LogicalVolume* cladLog_SFIL = new G4LogicalVolume(fiberClad_SFIL, FindMaterial("PMMA"), "fClad_SFIL_L");
         G4LogicalVolume* coreLog_SFIL = new G4LogicalVolume(fiberCore_SFIL, FindMaterial("Polystyrene"), "fCore_SFIL_L");
+
+	fScintRegion_SFIL->AddRootLogicalVolume(cladLog_SFIL);
+        fScintRegion_SFIL->AddRootLogicalVolume(coreLog_SFIL);
+        cladLog_SFIL->SetRegion(fScintRegion_SFIL);
+        coreLog_SFIL->SetRegion(fScintRegion_SFIL);
 
         new G4PVPlacement(0, G4ThreeVector(0,0,0), coreLog_SFIL, "fCore_P", cladLog_SFIL, false, 0, false);
         new G4PVPlacement(0, G4ThreeVector(0,0,0), cladLog_SFIL, "fClad_P", glueLog_SFIL, false, 0, false);
@@ -449,21 +745,5 @@ void koBICDetectorConstruction::FiberImplement(
         coreLog_SFIL->SetVisAttributes(fVisAttrOrange);
 
         FillFibersInMother(pbLog, 21.73 * mm, glueLog_SFIL, 700.0 * mm, 0.233 * mm);
-    }
-
-    // [Bulk Layers Loop]
-    for (auto pbLog : logicPbBulk) {
-        G4LogicalVolume* glueLog_Bulk = new G4LogicalVolume(fiberGlue_Bulk, FindMaterial("Glue"), "fGlue_Bulk_L");
-        G4LogicalVolume* cladLog_Bulk = new G4LogicalVolume(fiberClad_Bulk, FindMaterial("PMMA"), "fClad_Bulk_L");
-        G4LogicalVolume* coreLog_Bulk = new G4LogicalVolume(fiberCore_Bulk, FindMaterial("Polystyrene"), "fCore_Bulk_L");
-
-        new G4PVPlacement(0, G4ThreeVector(0,0,0), coreLog_Bulk, "fCore_P", cladLog_Bulk, false, 0, false);
-        new G4PVPlacement(0, G4ThreeVector(0,0,0), cladLog_Bulk, "fClad_P", glueLog_Bulk, false, 0, false);
-
-        glueLog_Bulk->SetVisAttributes(fVisAttrSkyBlue);
-        cladLog_Bulk->SetVisAttributes(fVisAttrGray);
-        coreLog_Bulk->SetVisAttributes(fVisAttrOrange);
-
-        FillFibersInMother(pbLog, 20.889 * mm, glueLog_Bulk, 300.0 * mm, 0.233 * mm); 
     }
 }

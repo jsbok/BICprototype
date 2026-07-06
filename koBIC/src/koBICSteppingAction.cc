@@ -240,102 +240,100 @@ if (step->GetTrack()->GetDefinition() ==
     }
 }
 
+G4String volName = preVol->GetName();
   G4ThreeVector globalPos = presteppoint->GetPosition();
   
-  // 상황에 따라 Depth(보통 1 또는 2)를 조절하여 최상위 ModuleLogical 기준의 로컬 좌표를 얻습니다.
   G4ThreeVector localPos = theTouchable->GetHistory()->GetTransform(1).TransformPoint(globalPos); 
   G4double x = localPos.x();
   G4double y = localPos.y();
   G4double z = localPos.z(); // -totalLength/2 ~ +totalLength/2 범위
-
-  // 2. 보내주신 코드의 지오메트리 상수 계산 정의
-  G4double rmin = 904.485 * mm; 
-  G4double rmax = 1037.675 * mm + (20.889 * 7) * mm; 
-  G4double totalLength = rmax - rmin; // 전체 Z축 길이
-  G4double pDz = totalLength / 2.0;   // Z Half-length
-
-  G4double dPhi = (360. / 48.) * deg;
-  G4double pDx1 = rmin * std::tan(dPhi/2.); // 로컬 z = -pDz 에서의 x half-width
-  G4double pDx2 = rmax * std::tan(dPhi/2.); // 로컬 z = +pDz 에서의 x half-width
-
-  // 3. Z축 로컬 좌표 기준 가상 레이어 인덱스(0 ~ 9) 판별
-  // 로컬 z는 -pDz ~ +pDz 이므로, 계산 편의를 위해 0 ~ totalLength 범위로 시프트
-  G4double z_shifted = z + pDz; 
   
-  G4int layerIdx = -1;
-  G4double zStart = 0, zEnd = 0, thick = 0;
-  G4double curZ = 0;
+G4int finalModuleNum = -1;
 
-  // [A] SFIL 구역: 3개 가상 레이어 반복 스캔
-  for(int r = 0; r < 3; r++) {
-      curZ += 17.0*mm; // 앞선 Vac 레이어 두께 점프
-      thick = 21.73*mm; // 가상 Pb 레이어 두께
-      if (z_shifted >= curZ && z_shifted <= curZ + thick) {
-          layerIdx = r;
-          zStart = curZ;
-          zEnd = zStart + thick;
-          break;
-      }
-      curZ += thick;
-  }
 
-  // [B] BULK 구역: 7개 가상 레이어 반복 스캔 (SFIL 끝난 지점 이후)
-  if (layerIdx == -1) {
-      curZ += 17.0*mm; // SFIL 영역의 마지막 Vac 레이어 점프
-      for(int r = 0; r < 7; r++) {
-          thick = 20.889*mm; // 가상 Bulk 레이어 두께
-          if (z_shifted >= curZ && z_shifted <= curZ + thick) {
-              layerIdx = 3 + r;
-              zStart = curZ;
-              zEnd = zStart + thick;
-              break;
-          }
-          curZ += thick;
-      }
-  }
+//if (volName.contains("Module") || volName.contains("Box") || volName.contains("Pb")) {
+    
+G4double rmin = 825.805 * mm;
+G4double rmax = 1036.455 * mm + 180.0 * mm; 
+G4double totalLength = rmax - rmin;
+G4double pDz = totalLength / 2.0;
+ G4double z_shifted = z + pDz; // 
 
-  // 만약 입자가 가상 레이어 경계 밖(진공 레이어 구간 등)에 찍혔다면 리턴 처리
-  if (layerIdx == -1) return;
+G4double boxStartZ = (totalLength - 180.0) * mm;// 
 
-  // 4. X축 좌표를 기준으로 지그재그 5개 사다리꼴 섹션(0 ~ 4) 판별
-  // 해당 가상 레이어의 시작점(zStart)과 끝점(zEnd)에서의 전체 엄마 사다리꼴 너비 계산
-  G4double fullDx1 = pDx1 + (pDx2 - pDx1) * (zStart / totalLength);
-  G4double fullDx2 = pDx1 + (pDx2 - pDx1) * (zEnd / totalLength);
-  
-  G4double delta = fullDx2 - fullDx1;
-  G4double w_avg = (fullDx1 + fullDx2) / 10.0; // 5분할 조각의 평균 Half-width
+G4double zStart = pDz - 180.0 * mm;
+G4double zEnd   = pDz;
 
-  // 현재 가상 레이어 내부에서의 상대적인 Z축 위치 비율 (0.0 ~ 1.0)
-  G4double z_rel = (z_shifted - zStart) / thick;
-  
-  // 180도 지그재그 회전 배치를 모사하기 위한 빗각 경계면 오프셋
-  G4double offset = delta * (z_rel - 0.5);
+if (z >= zStart && z <= zEnd) {
+    G4int layerIdx = std::floor((z - zStart) / (30.0 * mm));
+    if (layerIdx < 0) layerIdx = 0;
+    if (layerIdx > 5) layerIdx = 5;
 
-  // DetectorConstruction의 5분할 간격식(posX = (2*s - 4)*w_avg)과 
-  // 지그재그 교차 치수 대입법을 역산한 4개의 X 경계선
-  G4double bnd1 = -3.0 * w_avg + offset;
-  G4double bnd2 = -1.0 * w_avg - offset;
-  G4double bnd3 =  1.0 * w_avg + offset;
-  G4double bnd4 =  3.0 * w_avg - offset;
 
-  G4int sectionIdx = 0;
-  if      (x < bnd1) sectionIdx = 0;
-  else if (x < bnd2) sectionIdx = 1;
-  else if (x < bnd3) sectionIdx = 2;
-  else if (x < bnd4) sectionIdx = 3;
-  else               sectionIdx = 4;
+    G4int colIdx = 1; // (0mm)
+    if (x < -15.0 * mm) {
+        colIdx = 0; // -30mm 
+    } else if (x > 15.0 * mm) {
+        colIdx = 2; // +30mm 
+    }
+    finalModuleNum = 10 + (layerIdx * 3) + colIdx;
+}
+//}
 
-  // 5. 최종 가상 모듈 번호 (0 ~ 49) 저장
-  fEdep.ModuleNum = (layerIdx * 5) + sectionIdx;
+// =========================================================================
+// SFIL (0~9)
+// =========================================================================
+if (volName.contains("Pb_SFIL") || volName.contains("SFIL")) {
+    if (z_shifted < boxStartZ) {
+        
+        G4int layerIdx = (z < -30.0 * mm) ? 0 : 1; 
 
-  G4double pdgCharge = particle->GetPDGCharge();
+        G4double dPhi = (360. / 48.) * deg;
+        G4double pDx1 = rmin * std::tan(dPhi/2.);
+        G4double pDx2 = rmax * std::tan(dPhi/2.);
+        G4double thick = 21.73 * mm;
+        
+        G4double zStart = (layerIdx == 1) ? (totalLength - 180.0 - 17.0 - 21.73) * mm 
+                                          : (totalLength - 180.0 - 17.0 - 21.73 - 17.0 - 21.73) * mm; 
+        G4double zEnd = zStart + thick;
 
-  fEdep.Edep = step->GetTotalEnergyDeposit();
-  fEdep.EdepEle = (std::abs(pdgID)==11) ? fEdep.Edep : 0.;
-  fEdep.EdepGamma = (std::abs(pdgID)==22) ? fEdep.Edep : 0.;
-  fEdep.EdepCharged = ( std::round(std::abs(pdgCharge)) != 0. ) ? fEdep.Edep : 0.;
+        G4double fullDx1 = pDx1 + (pDx2 - pDx1) * (zStart / totalLength);
+        G4double fullDx2 = pDx1 + (pDx2 - pDx1) * (zEnd / totalLength);
+        
+        G4double delta = fullDx2 - fullDx1;
+        G4double w_avg = (fullDx1 + fullDx2) / 10.0;
+        
+        G4double z_rel_sfil = (z_shifted - zStart) / thick;
+        G4double offset = delta * (z_rel_sfil - 0.5);
 
-  if ( fEdep.Edep > 0. ) fEventAction->fillEdeps(fEdep);
-//  }
-  return;
+        G4double bnd1 = -3.0 * w_avg + offset;
+        G4double bnd2 = -1.0 * w_avg - offset;
+        G4double bnd3 =  1.0 * w_avg + offset;
+        G4double bnd4 =  3.0 * w_avg - offset;
+
+        G4int sectionIdx = 0;
+        if      (x < bnd1) sectionIdx = 0;
+        else if (x < bnd2) sectionIdx = 1;
+        else if (x < bnd3) sectionIdx = 2;
+        else if (x < bnd4) sectionIdx = 3;
+        else               sectionIdx = 4;
+
+        finalModuleNum = (layerIdx * 5) + sectionIdx;
+    }
+}
+
+if (finalModuleNum < 0 || finalModuleNum > 27) return; 
+
+fEdep.ModuleNum = finalModuleNum;
+
+G4double pdgCharge = particle->GetPDGCharge();
+fEdep.Edep = step->GetTotalEnergyDeposit();
+fEdep.EdepEle = (std::abs(pdgID) == 11) ? fEdep.Edep : 0.;
+fEdep.EdepGamma = (std::abs(pdgID) == 22) ? fEdep.Edep : 0.;
+fEdep.EdepCharged = (std::round(std::abs(pdgCharge)) != 0.) ? fEdep.Edep : 0.;
+
+if (fEdep.Edep > 0.) {
+    fEventAction->fillEdeps(fEdep);
+}
+return;
 }
