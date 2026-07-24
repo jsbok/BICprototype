@@ -31,8 +31,8 @@ using namespace std;
 G4ThreadLocal koBICMagneticField *koBICDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager *koBICDetectorConstruction::fFieldMgr = 0;
 
-int koBICDetectorConstruction::fNofRow = 3;
-int koBICDetectorConstruction::fNofCol = 6;
+int koBICDetectorConstruction::fNofRow = 1;
+int koBICDetectorConstruction::fNofCol = 1;
 int koBICDetectorConstruction::fNofModules = fNofRow * fNofCol;
 
 koBICDetectorConstruction::koBICDetectorConstruction()
@@ -100,7 +100,7 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
   fFiberUnitH = 1.;
 
   G4double rmin = 825.805 * mm;
-  G4double rmax = 1036.455 * mm + (30.0 * 6) * mm; 
+  G4double rmax = 1034.0 * mm + (30.0 * 6) * mm; 
   G4double totalLength = rmax - rmin;
 
   G4double dPhi = (360. / 48.) * deg;
@@ -121,9 +121,9 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
 
   // Fiber Dimension
   clad_S_rMax = 0.50 * mm; // EcalBarrel_FiberRadius
-  core_S_rMax = 0.485 * mm; // 0.50 - 0.04 (CladdingThickness)
+  core_S_rMax = 0.48 * mm; // 0.50 - 0.04 (CladdingThickness)
   clad_S_rMax2 = 0.553 * mm;
-  glue_S_rMax = 0.553 * mm;
+  glue_S_rMax = 0.539 * mm;
   fiberUnit = new G4Box("fiber_SQ", (fFiberUnitH / 2) * mm, (1. / 2) * mm, (fDepth / 2) * mm);
   fiberClad_SFIL = new G4Tubs("fiberClad_SFIL", 0, clad_S_rMax, 700./ 2., 0 * deg, 360. * deg);
   fiberCore_SFIL = new G4Tubs("fiberCore_SFIL", 0, core_S_rMax, 700. / 2., 0 * deg, 360. * deg);
@@ -272,7 +272,7 @@ void koBICDetectorConstruction::ModuleBuild(
 
     G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm);
 
-    // 3. [Reverse] 17mm vacuum -> 21.73mm SFIL 
+    // 3. [Reverse] 17mm vacuum -> 21.24mm SFIL 
     for(int r = 0; r < 2; r++) {
         G4double vacThick = 17.0 * mm;
         currentBoundaryZ -= vacThick; // 
@@ -280,7 +280,7 @@ void koBICDetectorConstruction::ModuleBuild(
         
         PlaceTrdLayerAt("Vac_SFIL", vacThick, zCenterVac, vacMat, fVisAttrBlue);
         
-        G4double sfilThick = 21.73 * mm;
+        G4double sfilThick = 21.24 * mm;
         currentBoundaryZ -= sfilThick; 
         G4double zCenterSfil = currentBoundaryZ + (sfilThick / 2.0);
         
@@ -288,6 +288,7 @@ void koBICDetectorConstruction::ModuleBuild(
         fVisAttrGray->SetForceSolid(true);
         
         G4LogicalVolume* tmpPbSFIL = PlaceTrdLayerAt("Pb_SFIL", sfilThick, zCenterSfil, pbMat, 0);
+        tmpPbSFIL->SetVisAttributes(fVisAttrGray);
         logicPbSFIL.push_back(tmpPbSFIL); 
     }
     G4double endVacThick = 17.0 * mm;
@@ -330,12 +331,12 @@ void koBICDetectorConstruction::ModuleBuild(
     // 3. SiPM
     // =========================================================
 if (doSiPM) {
-    G4double sipmSize = 16.0 * mm;
+    G4double sipmSize = 30.0 * mm;
     G4double sipmThick = SiPMT;      // 0.3mm
     G4double cathThick = SiPMT;      
 
     std::vector<G4double> layerThicks = {
-        17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm,
+        17.0*mm, 21.24*mm, 17.0*mm, 21.24*mm, 17.0*mm, 21.24*mm, 17.0*mm, 21.24*mm, 17.0*mm, 21.24*mm, 17.0*mm,
         30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm
     };
 
@@ -354,7 +355,7 @@ if (doSiPM) {
     G4VSolid* sipmCellSolid = new G4Box("SiPMCellSolid", sipmSize/2., sipmThick/2., sipmSize/2.);
     G4VSolid* sipmCathSolid = new G4Box("SiPMCathSolid", sipmSize/2., cathThick/2., sipmSize/2.);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 0; i++) {
 
         G4double thick = layerThicks[i];
         G4double zCenter = runningZ + thick/2.0;
