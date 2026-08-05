@@ -220,7 +220,7 @@ if (step->GetTrack()->GetDefinition() ==
 
 //  G4String matName = preVol->GetMaterial()->GetName();
 
-  if ( matName=="G4_Galactic" || matName=="Air" ) return;
+//  if ( matName=="G4_Galactic" || matName=="Air" ) return;
 
 if (step->GetTrack()->GetDefinition() ==
     G4OpticalPhoton::Definition())
@@ -246,18 +246,27 @@ G4String volName = preVol->GetName();
   G4ThreeVector localPos = theTouchable->GetHistory()->GetTransform(1).TransformPoint(globalPos); 
   G4double x = localPos.x();
   G4double y = localPos.y();
-  G4double z = localPos.z(); // -totalLength/2 ~ +totalLength/2 범위
+  G4double z = localPos.z(); // -totalLength/2 ~ +totalLength/2 Range
   
 G4int finalModuleNum = -1;
 
 
-//if (volName.contains("Module") || volName.contains("Box") || volName.contains("Pb")) {
-    
+G4int layers = 3;
+/*
 G4double rmin = 825.805 * mm;
-G4double rmax = 1036.455 * mm + 180.0 * mm; 
+G4double rmax = 1036.455 * mm + 180.0 * mm + (38.73 * layers) * mm; 
 G4double totalLength = rmax - rmin;
 G4double pDz = totalLength / 2.0;
- G4double z_shifted = z + pDz; // 
+G4double z_shifted = z + pDz; // 
+G4double boxStartZ = (totalLength - 180.0) * mm;// 
+
+if (volName.contains("Module") || volName.contains("Box") || volName.contains("Pb")) {
+  */  
+G4double rmin = 825.805 * mm;
+G4double rmax = 1036.455 * mm + 180.0 * mm + (38.73 * layers) * mm; 
+G4double totalLength = rmax - rmin;
+G4double pDz = totalLength / 2.0;
+G4double z_shifted = z + pDz; // 
 
 G4double boxStartZ = (totalLength - 180.0) * mm;// 
 
@@ -274,27 +283,50 @@ if (z >= zStart && z <= zEnd) {
     if (x < -15.0 * mm) {
         colIdx = 0; // -30mm 
     } else if (x > 15.0 * mm) {
-        colIdx = 2; // +30mm 
+	    colIdx = 2; // +30mm 
     }
-    finalModuleNum = 10 + (layerIdx * 3) + colIdx;
+    finalModuleNum = 10 + 5*layers + (layerIdx * 3) + colIdx;
 }
 //}
 
 // =========================================================================
-// SFIL (0~9)
+// SFIL (1~5)
 // =========================================================================
-if (volName.contains("Pb_SFIL") || volName.contains("SFIL")) {
+// 💡 1. "Pb_SFIL"만 엄격하게 검사 (Vac_SFIL 진공 볼륨 제외)
+if (volName.contains("Pb_SFIL")) {
     if (z_shifted < boxStartZ) {
         
-        G4int layerIdx = (z < -30.0 * mm) ? 0 : 1; 
+        G4double refZ = totalLength - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm); 
+        G4double thick = 21.24 * mm; // SFIL 두께
 
+        G4double zStart_SFIL3 = refZ;
+        G4double zStart_SFIL2 = zStart_SFIL3 - 38.73 * mm;
+        G4double zStart_SFIL1 = zStart_SFIL2 - 38.24 * mm; // 17mm 간격 반영
+
+        G4int layerIdx = -1;
+        G4double zStart = 0.0;
+
+        // 💡 2. 각 레이어의 실제 두께 범위 [zStart, zStart + thick] 내에 들어왔는지 엄격히 검증
+        if (z_shifted >= zStart_SFIL1 && z_shifted <= zStart_SFIL1 + thick) {
+            layerIdx = 0; zStart = zStart_SFIL1;
+        } else if (z_shifted >= zStart_SFIL2 && z_shifted <= zStart_SFIL2 + thick) {
+            layerIdx = 1; zStart = zStart_SFIL2;
+        } else if (z_shifted >= zStart_SFIL3 && z_shifted <= zStart_SFIL3 + thick) {
+            layerIdx = 2; zStart = zStart_SFIL3;
+        } else if (z_shifted >= (zStart_SFIL3 + 38.73*mm) && z_shifted <= (zStart_SFIL3 + 38.73*mm) + thick) {
+            layerIdx = 3; zStart = zStart_SFIL3 + 38.73*mm;
+        } else if (z_shifted >= (zStart_SFIL3 + 77.46*mm) && z_shifted <= (zStart_SFIL3 + 77.46*mm) + thick) {
+            layerIdx = 4; zStart = zStart_SFIL3 + 77.46*mm;
+        }
+
+        // 💡 레이어 범위 밖(레이어 사이의 진공 Gap 등)이라면 즉시 탈락
+        if (layerIdx == -1) return;
+
+        // --- 이하 X축 5등분 사다리꼴 매핑 수식 (이전과 동일) ---
         G4double dPhi = (360. / 48.) * deg;
         G4double pDx1 = rmin * std::tan(dPhi/2.);
         G4double pDx2 = rmax * std::tan(dPhi/2.);
-        G4double thick = 21.73 * mm;
         
-        G4double zStart = (layerIdx == 1) ? (totalLength - 180.0 - 17.0 - 21.73) * mm 
-                                          : (totalLength - 180.0 - 17.0 - 21.73 - 17.0 - 21.73) * mm; 
         G4double zEnd = zStart + thick;
 
         G4double fullDx1 = pDx1 + (pDx2 - pDx1) * (zStart / totalLength);
@@ -322,8 +354,42 @@ if (volName.contains("Pb_SFIL") || volName.contains("SFIL")) {
     }
 }
 
-if (finalModuleNum < 0 || finalModuleNum > 27) return; 
+if (finalModuleNum < 0 || finalModuleNum > 42) return; 
 
+// =========================================================================
+// [진공/여백 오매핑 검증 및 시뮬레이션 중단 로직]
+// =========================================================================
+/*
+// 1. 현재 입자가 위치한 영역의 실제 물리적 물질(Material) 
+G4Material* currentMat = presteppoint->GetMaterial();
+G4String matName2 = currentMat->GetName();
+
+// 2. 진공(Vacuum/Air) 물질인지 판별 
+bool isVacuum = (matName2.contains("AIR"));
+
+// 3. 모듈 번호(0~42)는 정상 할당되었으나, 실제 물질이 진공인 경우 -> 시뮬레이션 즉시 폭파
+if (finalModuleNum >= 0 && finalModuleNum <= 42 && isVacuum) {
+    
+    // 터미널에 출력할 에러 메시지 
+    std::string errorMsg = "\n=========================================================\n";
+    errorMsg += " [GEOMETRY MISMATCH DETECTED - SIMULATION ABORTED]\n";
+    errorMsg += "  A Vacuum region was wrongly mapped as a valid Module ID!\n";
+    errorMsg += "---------------------------------------------------------\n";
+    errorMsg += "  * Mapped Module Num : " + std::to_string(finalModuleNum) + "\n";
+    errorMsg += "  * Actual Volume Name: " + std::string(volName) + "\n";
+    errorMsg += "  * Actual Material   : " + std::string(matName2) + "\n";
+    errorMsg += "  * Step Position (X) : " + std::to_string(x/mm) + " mm\n";
+    errorMsg += "  * Step Position (Y) : " + std::to_string(y/mm) + " mm\n";
+    errorMsg += "  * Position (z_shift): " + std::to_string(z_shifted/mm) + " mm\n";
+    errorMsg += "=========================================================\n";
+
+    // G4Exception을 호출하여 터미널을 에러 로그와 함께 즉시 강제 종료.
+    G4Exception("SteppingAction::UserSteppingAction()", 
+                "ERR_VACUUM_MAPPED_AS_MODULE", 
+                FatalException, 
+                errorMsg.c_str());
+}
+*/
 fEdep.ModuleNum = finalModuleNum;
 
 G4double pdgCharge = particle->GetPDGCharge();

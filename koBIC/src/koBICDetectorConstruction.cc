@@ -100,7 +100,7 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
   fFiberUnitH = 1.;
 
   G4double rmin = 825.805 * mm;
-  G4double rmax = 1036.455 * mm + (30.0 * 6) * mm; 
+  G4double rmax = 1036.455 * mm + (30.0 * 6) * mm + (38.73 * 3) * mm ; 
   G4double totalLength = rmax - rmin;
 
   G4double dPhi = (360. / 48.) * deg;
@@ -121,9 +121,9 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
 
   // Fiber Dimension
   clad_S_rMax = 0.50 * mm; // EcalBarrel_FiberRadius
-  core_S_rMax = 0.485 * mm; // 0.50 - 0.04 (CladdingThickness)
+  core_S_rMax = 0.48 * mm; // 0.50 - 0.02 (CladdingThickness)
   clad_S_rMax2 = 0.553 * mm;
-  glue_S_rMax = 0.553 * mm;
+  glue_S_rMax = 0.539 * mm;
   fiberUnit = new G4Box("fiber_SQ", (fFiberUnitH / 2) * mm, (1. / 2) * mm, (fDepth / 2) * mm);
   fiberClad_SFIL = new G4Tubs("fiberClad_SFIL", 0, clad_S_rMax, 700./ 2., 0 * deg, 360. * deg);
   fiberCore_SFIL = new G4Tubs("fiberCore_SFIL", 0, core_S_rMax, 700. / 2., 0 * deg, 360. * deg);
@@ -163,8 +163,8 @@ void koBICDetectorConstruction::ConstructSDandField() {
     G4LogicalVolumeStore* lvStore = G4LogicalVolumeStore::GetInstance();
 
 if (doSiPM) {
-        // SiPM Definition [0 - 28]
-        for (int i = 0; i < 28; i++) {
+        // SiPM Definition [0 - 43]
+        for (int i = 0; i < 43; i++) {
             G4String nameL = "ModuleSD_L_" + std::to_string(i);
             G4String nameR = "ModuleSD_R_" + std::to_string(i);
             G4String collL = "ModuleC" + std::to_string(2 * i);
@@ -174,7 +174,7 @@ if (doSiPM) {
             int idR = 2 * i + 1;
 
             if (i >= (int)fModuleProp.size()) {
-                G4cout << "[Warning] fModuleProp size is smaller than 28! Index: " << i << G4endl;
+                G4cout << "[Warning] fModuleProp size is smaller than 43! Index: " << i << G4endl;
                 break; 
             }
 
@@ -234,6 +234,7 @@ void koBICDetectorConstruction::ModuleBuild(
     std::vector<G4LogicalVolume *> fiberClad2Intersection_[],
     std::vector<G4LogicalVolume *> fiberCoreIntersection_[],
     std::vector<koBICInterface::koBICModuleProperty> &ModuleProp_) {
+    
     G4Material* pbMat = FindMaterial("Lead");
     G4Material* vacMat = FindMaterial("G4_Galactic");
 
@@ -247,16 +248,18 @@ void koBICDetectorConstruction::ModuleBuild(
     G4double currentZ = -pDz; // -500mm
     int copyNo = 0;
 
-    // Layer production
-    auto PlaceTrdLayerAt = [&](G4String name, G4double thick, G4double zCenter, G4Material* mat, G4VisAttributes* vis, G4double customDy = -1.0) -> G4LogicalVolume* {
+    auto PlaceTrdLayerAt = [&](G4String name, G4double thick, G4double zCenter, G4Material* mat, G4VisAttributes* vis, G4double zForSize = 9999.0) -> G4LogicalVolume* {
         
-        G4double zStart = (zCenter - thick / 2.0) + pDz; 
+        G4double zCalc = (zForSize == 9999.0) ? zCenter : zForSize;
+
+        G4double zStart = (zCalc - thick / 2.0) + pDz; 
         G4double zEnd   = zStart + thick;
 
         G4double layerDx1 = pDx1 + (pDx2 - pDx1) * (zStart / (2 * pDz));
         G4double layerDx2 = pDx1 + (pDx2 - pDx1) * (zEnd / (2 * pDz));
 
-	G4double currentDy = 350 *mm;
+        G4double currentDy = 350.0 * mm;
+        
         G4VSolid* layerSolid = new G4Trd(name + "_sol", layerDx1, layerDx2, currentDy, currentDy, thick / 2.0);
         G4LogicalVolume* logVol = new G4LogicalVolume(layerSolid, mat, name + "_log");
         
@@ -268,33 +271,76 @@ void koBICDetectorConstruction::ModuleBuild(
         return logVol;
     };
 
-    std::vector<G4LogicalVolume*> logicPbSFIL;
+    std::vector<G4LogicalVolume*> logicPbSFIL; //  SFIL(1~5)
 
-    G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm);
+    // ==============================================================================
+    // 1. [SFIL 1, 2]  Reverse Direction Arrangement (Vacuum 17.49mm -> SFIL 21.24mm)
+    // ==============================================================================
+    G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
 
-    // 3. [Reverse] 17mm vacuum -> 21.73mm SFIL 
     for(int r = 0; r < 2; r++) {
-        G4double vacThick = 17.0 * mm;
-        currentBoundaryZ -= vacThick; // 
+        G4double vacThick = 17.49 * mm;
+        currentBoundaryZ -= vacThick; 
         G4double zCenterVac = currentBoundaryZ + (vacThick / 2.0); 
         
         PlaceTrdLayerAt("Vac_SFIL", vacThick, zCenterVac, vacMat, fVisAttrBlue);
         
-        G4double sfilThick = 21.73 * mm;
+        G4double sfilThick = 21.24 * mm;
         currentBoundaryZ -= sfilThick; 
         G4double zCenterSfil = currentBoundaryZ + (sfilThick / 2.0);
         
         fVisAttrGray->SetColour(G4Colour(0.5, 0.5, 0.5, 0.5)); 
         fVisAttrGray->SetForceSolid(true);
         
-        G4LogicalVolume* tmpPbSFIL = PlaceTrdLayerAt("Pb_SFIL", sfilThick, zCenterSfil, pbMat, 0);
+        G4LogicalVolume* tmpPbSFIL = PlaceTrdLayerAt("Pb_SFIL", sfilThick, zCenterSfil, pbMat, fVisAttrGray);
         logicPbSFIL.push_back(tmpPbSFIL); 
     }
+
+    // vacuum between 2 and 3 SFILs
     G4double endVacThick = 17.0 * mm;
-    currentBoundaryZ -= endVacThick; // 
+    currentBoundaryZ -= endVacThick; 
     G4double zCenterEndVac = currentBoundaryZ + (endVacThick / 2.0);
 
     PlaceTrdLayerAt("Vac_SFIL_End", endVacThick, zCenterEndVac, vacMat, fVisAttrBlue);
+
+    // ==============================================================================
+    // 2. [SFIL 3, 4, 5] (Bulk) Forward Direction Arrangement, 17mm Interval
+    // ==============================================================================
+    G4double sfilThick2 = 21.24 * mm; // thickness
+    G4double gapThick = 17.49 * mm;     // interval
+
+    // Imaginary Z coordinate for calculating X Distance
+    G4double originalBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
+
+    // Real Z coordinate
+    G4double realBoundaryZ = originalBoundaryZ; 
+
+    for(int r = 0; r < 3; r++) {
+        fVisAttrGray->SetVisibility(true);
+        fVisAttrGray->SetForceSolid(true);
+
+        G4double originalZCenter = originalBoundaryZ + (sfilThick2 / 2.0); // 1. Imaginary Position
+
+        G4double realZCenter = realBoundaryZ + (sfilThick2 / 2.0); // 2. Real Position
+
+        G4LogicalVolume* tmpPbSFIL2 = PlaceTrdLayerAt(
+            "Pb_SFIL", sfilThick2, realZCenter, pbMat, fVisAttrGray, originalZCenter
+        );
+        logicPbSFIL.push_back(tmpPbSFIL2); // 3. Push SFIL 3, 4, 5 to vector
+
+        // 4. Updates for next layer
+        originalBoundaryZ += sfilThick2; 
+        
+        realBoundaryZ += sfilThick2;
+
+        if (r < 2) {
+            G4double zCenterGap = realBoundaryZ + (gapThick / 2.0);
+            PlaceTrdLayerAt("Vac_Gap", gapThick, zCenterGap, vacMat, fVisAttrBlue);
+            realBoundaryZ += gapThick; // 17 mm gap except last layer
+        }
+    }
+
+    
     
     G4RotationMatrix* zRot = new G4RotationMatrix;
     zRot->rotateZ(M_PI/2.*rad);
@@ -309,8 +355,8 @@ void koBICDetectorConstruction::ModuleBuild(
         int quotient  = i / 3; // Z-Axis(0, 0, 0, 1, 1, 1, ..., 5, 5, 5) -> 6 Coloums
         int remainder = i % 3; // X-Axis (0, 1, 2, 0, 1, 2, ..., 0, 1, 2) -> 3 Rows
 
-        // 1. X: -30, 0, +30 mm
-        G4double xPos = -30.0 * mm + (30.0 * remainder * mm);
+        // 1. X: +30, 0, -30 mm
+        G4double xPos = 30.0 * mm - (30.0 * remainder * mm);
         
         // 2. Y: 0
         G4double yPos = 0.0 * mm;
@@ -330,89 +376,105 @@ void koBICDetectorConstruction::ModuleBuild(
     // 3. SiPM
     // =========================================================
 if (doSiPM) {
-    G4double sipmSize = 16.0 * mm;
+    G4double sipmSize = 13.0 * mm;
     G4double sipmThick = SiPMT;      // 0.3mm
     G4double cathThick = SiPMT;      
-
-    std::vector<G4double> layerThicks = {
-        17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm, 21.73*mm, 17.0*mm,
-        30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm, 30.0*mm
-    };
-
-    G4double runningZ = -pDz;
-    int pbLayerIdx = 0;
-
-
-  fVisAttrSkyBlue = new G4VisAttributes(G4Colour(0.5, 0.8, 0.9, 0.5));
-  fVisAttrSkyBlue->SetVisibility(false);
-  fVisAttrSkyBlue->SetForceSolid(false);
-
-  fVisAttrBlue = new G4VisAttributes(G4Colour(0., 0., 1.0, 0.5));
-  fVisAttrBlue->SetForceSolid(true);
-  fVisAttrBlue->SetVisibility(true);
 
     G4VSolid* sipmCellSolid = new G4Box("SiPMCellSolid", sipmSize/2., sipmThick/2., sipmSize/2.);
     G4VSolid* sipmCathSolid = new G4Box("SiPMCathSolid", sipmSize/2., cathThick/2., sipmSize/2.);
 
-    for (int i = 0; i < 10; i++) {
+    int pbLayerIdx = 0; // SFIL 1~5 Layer Index (0 ~ 4)
 
-        G4double thick = layerThicks[i];
-        G4double zCenter = runningZ + thick/2.0;
-        bool isPbLayer = (i == 7 || i == 9 ||  i >= 11);
-
-if (isPbLayer) {
-        G4double currentDy = (i >= 7) ? (150.0 * mm) : pDy;
-        G4double currentDx = pDx1 + (pDx2 - pDx1) * ((zCenter + pDz) / (2.0 * pDz));
-        G4double stepX = (currentDx * 2.0) / 5.0;
+    // SiPM Arrangemnet Function
+    auto PlaceSiPMsOnLayer = [&](G4double realZ, G4double origZ) {
+        // X Distance according to Imaginary Z (origZ)
+        G4double origDx = pDx1 + (pDx2 - pDx1) * ((origZ + pDz) / (2.0 * pDz));
+        G4double stepX = (origDx * 2.0) / 5.0;
 
         for (int xIdx = 0; xIdx < 5; xIdx++) {
             int s = pbLayerIdx * 5 + xIdx;
 
-            // SiPM name
             G4String nameCellL = "ModuleC_Cell" + std::to_string(2 * s);
             G4String nameCellR = "ModuleC_Cell" + std::to_string(2 * s + 1);
             G4String nameCathL = "ModuleC_Cath" + std::to_string(2 * s);
             G4String nameCathR = "ModuleC_Cath" + std::to_string(2 * s + 1);
 
-            // 1. Glass Cell 
-            SiPMcellLogical_[2 * s] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellL);
+            // 1. Glass Cell
+            SiPMcellLogical_[2 * s]     = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellL);
             SiPMcellLogical_[2 * s + 1] = new G4LogicalVolume(sipmCellSolid, FindMaterial("Glass"), nameCellR);
             
-            // 2. Silicon Cathode
-            SiPMcathLogical_[2 * s] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathL);
+            // 2. Silicon Cathode 
+            SiPMcathLogical_[2 * s]     = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathL);
             SiPMcathLogical_[2 * s + 1] = new G4LogicalVolume(sipmCathSolid, FindMaterial("Silicon"), nameCathR);
 
-            new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s], nameCathL + "_phys", SiPMcellLogical_[2 * s], false, 2 * s, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s],     nameCathL + "_phys", SiPMcellLogical_[2 * s],     false, 2 * s,     checkOverlaps);
             new G4PVPlacement(0, G4ThreeVector(), SiPMcathLogical_[2 * s + 1], nameCathR + "_phys", SiPMcellLogical_[2 * s + 1], false, 2 * s + 1, checkOverlaps);
 
-            // 3. Glass Cell Arrangement
-            G4double xPos = -currentDx + (xIdx + 0.5) * stepX;
-            G4double yPos_L = -(350*mm + sipmThick / 2.);
-            G4double yPos_R =  (350*mm + sipmThick / 2.);
+            // 3. Glass Cell Position (X : origDx, Z : realZ)
+            G4double xPos = -origDx + (xIdx + 0.5) * stepX;
+            G4double yPos_L = -(350.0 * mm + sipmThick / 2.0); // 70cm
+            G4double yPos_R =  (350.0 * mm + sipmThick / 2.0);
 
-            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_L, zCenter), SiPMcellLogical_[2 * s], nameCellL + "_phys", Envelope, false, 2 * s, checkOverlaps);
-            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_R, zCenter), SiPMcellLogical_[2 * s + 1], nameCellR + "_phys", Envelope, false, 2 * s + 1, checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_L, realZ), SiPMcellLogical_[2 * s],     nameCellL + "_phys", Envelope, false, 2 * s,     checkOverlaps);
+            new G4PVPlacement(0, G4ThreeVector(xPos, yPos_R, realZ), SiPMcellLogical_[2 * s + 1], nameCellR + "_phys", Envelope, false, 2 * s + 1, checkOverlaps);
 
-            // 4. Optical Surface
-            new G4LogicalSkinSurface(nameCathL + "_surf", SiPMcathLogical_[2 * s], FindSurface("SiPMSurf"));
+            // 4. Optical Surface & VisAttributes
+            new G4LogicalSkinSurface(nameCathL + "_surf", SiPMcathLogical_[2 * s],     FindSurface("SiPMSurf"));
             new G4LogicalSkinSurface(nameCathR + "_surf", SiPMcathLogical_[2 * s + 1], FindSurface("SiPMSurf"));
 
             SiPMcathLogical_[2 * s]->SetVisAttributes(fVisAttrGreen);
             SiPMcathLogical_[2 * s + 1]->SetVisAttributes(fVisAttrGreen);
-            
         }
         pbLayerIdx++;
+    };
+
+    // ==============================================================================
+    // 1. [SFIL 1, 2] SiPM Arrangement (Reverse Direction)
+    // ==============================================================================
+    G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
+
+    for (int r = 0; r < 2; r++) {
+        currentBoundaryZ -= 17.49 * mm; // Vac
+        G4double sfilThick = 21.24 * mm;
+        currentBoundaryZ -= sfilThick;
+        G4double zCenterSfil = currentBoundaryZ + (sfilThick / 2.0);
+
+        // SFIL 1, 2 : (realZ == origZ)
+        PlaceSiPMsOnLayer(zCenterSfil, zCenterSfil);
     }
-        runningZ += thick;
+
+    // ==============================================================================
+    // 2. [SFIL 3, 4, 5] SiPM Arrangement (Forward Direction, 17mm Gap)
+    // ==============================================================================
+    G4double sfilThick2 = 21.24 * mm;
+    G4double gapThick = 17.49 * mm;
+
+    G4double originalBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
+    G4double realBoundaryZ = originalBoundaryZ;
+
+    for (int r = 0; r < 3; r++) {
+        G4double originalZCenter = originalBoundaryZ + (sfilThick2 / 2.0);
+        G4double realZCenter = realBoundaryZ + (sfilThick2 / 2.0);
+
+        // SFIL 3, 4, 5 -> Z: realZCenter, X: originalZCenter
+        PlaceSiPMsOnLayer(realZCenter, originalZCenter);
+
+        originalBoundaryZ += sfilThick2;
+        realBoundaryZ += sfilThick2;
+
+        if (r < 2) {
+            realBoundaryZ += gapThick; // 17.49 mm interval
+        }
     }
-G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm); // Bulk
+
+ G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm) ; // Bulk 
 
     // X (+30, 0, -30)
     std::vector<G4double> xPatterns = {30.0 * mm, 0.0 * mm, -30.0 * mm};
     
     // Z (repeat 6)
     int zRepeat = 6;
-    G4double zGap = 30.0 * mm; // 디텍터간 Z축 간격 (필요시 조정 가능)
+    G4double zGap = 30.0 * mm; // Z interval
 
     // 3x6 Z arrangement
     G4double startZ = bulkBoundaryZ +  zGap / 2.0;
@@ -421,8 +483,8 @@ G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm); // Bulk
     for (int zIdx = 0; zIdx < zRepeat; zIdx++) {          // 6 Z
         for (int xIdx = 0; xIdx < 3; xIdx++) {          // 3 X (+30, 0, -30)
             
-            // ID Assignment (10 ~ 27)
-            int s = 10 + arrayIdx; 
+            // ID Assignment (25 ~ 42)
+            int s = 25 + arrayIdx; 
 
             G4String nameCellL = "ModuleC_Cell" + std::to_string(2 * s);
             G4String nameCellR = "ModuleC_Cell" + std::to_string(2 * s + 1);
@@ -459,10 +521,10 @@ G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm); // Bulk
 }
 
 
-for (int s = 0; s < 28; s++) {
+for (int s = 0; s < 43; s++) {
     koBICInterface::koBICModuleProperty ModulePropSingle;
     ModulePropSingle.towerXY = fTowerXY;
-    ModulePropSingle.ModuleNum = s; // 0~49
+    ModulePropSingle.ModuleNum = s; // 0~42
     ModuleProp_.push_back(ModulePropSingle);
     }
 }
@@ -744,6 +806,6 @@ void koBICDetectorConstruction::FiberImplement(
         cladLog_SFIL->SetVisAttributes(fVisAttrGray);
         coreLog_SFIL->SetVisAttributes(fVisAttrOrange);
 
-        FillFibersInMother(pbLog, 21.73 * mm, glueLog_SFIL, 700.0 * mm, 0.233 * mm);
+        FillFibersInMother(pbLog, 21.24 * mm, glueLog_SFIL, 700.0 * mm, 0.233 * mm);
     }
 }

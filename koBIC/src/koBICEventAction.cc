@@ -27,7 +27,7 @@ void koBICEventAction::BeginOfEventAction(const G4Event*) {
 	clear();
 
   G4SDManager* sdManager = G4SDManager::GetSDMpointer();
-  for (int i = 0; i < 28; i++) {
+  for (int i = 0; i < 43; i++) {
     fSiPMCollID.push_back(sdManager->GetCollectionID("ModuleC"+std::to_string(2*i)));
     fSiPMCollID.push_back(sdManager->GetCollectionID("ModuleC"+std::to_string(2*i+1)));
   }

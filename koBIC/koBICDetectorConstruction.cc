@@ -113,8 +113,8 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
   fFiberUnitH = 1.;
 
   G4double rmin = 904.485 * mm; 
-G4double rmax = 1037.675 * mm + (20.889 * 7) * mm; 
-G4double totalLength = rmax - rmin * mm; // 70cm + 30cm
+  G4double rmax = 1037.675 * mm + (20.889 * 7) * mm; 
+  G4double totalLength = rmax - rmin * mm; // 70cm + 30cm
 
 // 48각 중 한 조각의 너비 계산
 G4double dPhi = (360. / 48.) * deg;
