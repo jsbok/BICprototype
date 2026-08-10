@@ -296,13 +296,6 @@ void koBICDetectorConstruction::ModuleBuild(
         logicPbSFIL.push_back(tmpPbSFIL); 
     }
 
-    // vacuum between 2 and 3 SFILs
-    G4double endVacThick = 17.0 * mm;
-    currentBoundaryZ -= endVacThick; 
-    G4double zCenterEndVac = currentBoundaryZ + (endVacThick / 2.0);
-
-    PlaceTrdLayerAt("Vac_SFIL_End", endVacThick, zCenterEndVac, vacMat, fVisAttrBlue);
-
     // ==============================================================================
     // 2. [SFIL 3, 4, 5] (Bulk) Forward Direction Arrangement, 17mm Interval
     // ==============================================================================

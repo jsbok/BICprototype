@@ -197,7 +197,7 @@ if(boundary)
   G4String matName = preVol->GetMaterial()->GetName();
   G4VPhysicalVolume* motherTower = GetMotherTower(theTouchable);
 
-
+/*
 //  if (poststeppoint->GetStepStatus() == fWorldBoundary) {
     if ( matName=="Polystyrene" ) {
     fLeak.E = track->GetTotalEnergy();
@@ -214,13 +214,13 @@ if(boundary)
 
     fEventAction->fillLeaks(fLeak);
   }
-
+*/
 if (step->GetTrack()->GetDefinition() ==
     G4OpticalPhoton::Definition())
 
 //  G4String matName = preVol->GetMaterial()->GetName();
 
-//  if ( matName=="G4_Galactic" || matName=="Air" ) return;
+  if ( matName=="G4_Galactic" || matName=="Air" ) return;
 
 if (step->GetTrack()->GetDefinition() ==
     G4OpticalPhoton::Definition())
@@ -292,8 +292,8 @@ if (z >= zStart && z <= zEnd) {
 // =========================================================================
 // SFIL (1~5)
 // =========================================================================
-// 💡 1. "Pb_SFIL"만 엄격하게 검사 (Vac_SFIL 진공 볼륨 제외)
-if (volName.contains("Pb_SFIL")) {
+//  1. "SFIL" contain 
+if (volName.contains("SFIL")) {
     if (z_shifted < boxStartZ) {
         
         G4double refZ = totalLength - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm); 
@@ -301,12 +301,12 @@ if (volName.contains("Pb_SFIL")) {
 
         G4double zStart_SFIL3 = refZ;
         G4double zStart_SFIL2 = zStart_SFIL3 - 38.73 * mm;
-        G4double zStart_SFIL1 = zStart_SFIL2 - 38.24 * mm; // 17mm 간격 반영
+        G4double zStart_SFIL1 = zStart_SFIL2 - 38.73 * mm; // 17mm 간격 반영
 
         G4int layerIdx = -1;
         G4double zStart = 0.0;
 
-        // 💡 2. 각 레이어의 실제 두께 범위 [zStart, zStart + thick] 내에 들어왔는지 엄격히 검증
+        // 2. Verify z range [zStart, zStart + thick]
         if (z_shifted >= zStart_SFIL1 && z_shifted <= zStart_SFIL1 + thick) {
             layerIdx = 0; zStart = zStart_SFIL1;
         } else if (z_shifted >= zStart_SFIL2 && z_shifted <= zStart_SFIL2 + thick) {
@@ -319,10 +319,9 @@ if (volName.contains("Pb_SFIL")) {
             layerIdx = 4; zStart = zStart_SFIL3 + 77.46*mm;
         }
 
-        // 💡 레이어 범위 밖(레이어 사이의 진공 Gap 등)이라면 즉시 탈락
         if (layerIdx == -1) return;
 
-        // --- 이하 X축 5등분 사다리꼴 매핑 수식 (이전과 동일) ---
+        // 5 same trapezoid
         G4double dPhi = (360. / 48.) * deg;
         G4double pDx1 = rmin * std::tan(dPhi/2.);
         G4double pDx2 = rmax * std::tan(dPhi/2.);
@@ -356,21 +355,22 @@ if (volName.contains("Pb_SFIL")) {
 
 if (finalModuleNum < 0 || finalModuleNum > 42) return; 
 
+
 // =========================================================================
-// [진공/여백 오매핑 검증 및 시뮬레이션 중단 로직]
+// [Vacuum/Air Mismapping Verification & Simulation Abort Logic]
 // =========================================================================
 /*
-// 1. 현재 입자가 위치한 영역의 실제 물리적 물질(Material) 
+// 1. Get the actual physical material where the track/step is currently located
 G4Material* currentMat = presteppoint->GetMaterial();
 G4String matName2 = currentMat->GetName();
 
-// 2. 진공(Vacuum/Air) 물질인지 판별 
+// 2. Check if the material is vacuum or air
 bool isVacuum = (matName2.contains("AIR"));
 
-// 3. 모듈 번호(0~42)는 정상 할당되었으나, 실제 물질이 진공인 경우 -> 시뮬레이션 즉시 폭파
+// 3. If a valid module ID (0-42) is assigned to a step located in vacuum/air -> Abort simulation immediately
 if (finalModuleNum >= 0 && finalModuleNum <= 42 && isVacuum) {
-    
-    // 터미널에 출력할 에러 메시지 
+
+    // Construct the error message to be printed to the terminal
     std::string errorMsg = "\n=========================================================\n";
     errorMsg += " [GEOMETRY MISMATCH DETECTED - SIMULATION ABORTED]\n";
     errorMsg += "  A Vacuum region was wrongly mapped as a valid Module ID!\n";
@@ -383,13 +383,30 @@ if (finalModuleNum >= 0 && finalModuleNum <= 42 && isVacuum) {
     errorMsg += "  * Position (z_shift): " + std::to_string(z_shifted/mm) + " mm\n";
     errorMsg += "=========================================================\n";
 
-    // G4Exception을 호출하여 터미널을 에러 로그와 함께 즉시 강제 종료.
-    G4Exception("SteppingAction::UserSteppingAction()", 
-                "ERR_VACUUM_MAPPED_AS_MODULE", 
-                FatalException, 
+    // Call G4Exception to immediately abort the simulation with the error log.
+    G4Exception("SteppingAction::UserSteppingAction()",
+                "ERR_VACUUM_MAPPED_AS_MODULE",
+                FatalException,
                 errorMsg.c_str());
 }
 */
+
+    if ( matName=="Polystyrene" ) {
+    fLeak.E = track->GetTotalEnergy();
+    fLeak.px = track->GetMomentum().x();
+    fLeak.py = track->GetMomentum().y();
+    fLeak.pz = track->GetMomentum().z();
+    fLeak.vx = presteppoint->GetPosition().x();
+    fLeak.vy = presteppoint->GetPosition().y();
+    fLeak.vz = presteppoint->GetPosition().z();
+    fLeak.vt = presteppoint->GetGlobalTime();
+    fLeak.pdgId = track->GetDefinition()->GetPDGEncoding();
+    fLeak.EdepCore = step->GetTotalEnergyDeposit();
+    fLeak.ModuleNum = finalModuleNum;
+
+    fEventAction->fillLeaks(fLeak);
+  }
+
 fEdep.ModuleNum = finalModuleNum;
 
 G4double pdgCharge = particle->GetPDGCharge();

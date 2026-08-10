@@ -266,7 +266,7 @@ for (int i2=0; i2<24; i2++){
 
 }
  for (int ii=1; ii<44; ii++){
-     THitss->SetBinContent(ii,Edep_Numm[ii-1]/100);
+     THitss->SetBinContent(ii,Edep_Numm[ii-1]/10);
     }
 
   std::cout << "Module total1 = " << THitss->Integral() << std::endl;
