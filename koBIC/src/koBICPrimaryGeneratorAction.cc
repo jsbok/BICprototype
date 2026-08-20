@@ -33,7 +33,7 @@ koBICPrimaryGeneratorAction::koBICPrimaryGeneratorAction(G4int seed, G4bool useH
 void koBICPrimaryGeneratorAction::initPtcGun() {
   fTheta = -0.01111;
   fPhi = 0.;
-  fRandX = 10.*mm;
+  fRandX = 0.*mm;
   fRandZ = 10.*mm;
   fX_0 = 0.;
   fY_0 = 0.;

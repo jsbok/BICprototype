@@ -31,8 +31,8 @@ using namespace std;
 G4ThreadLocal koBICMagneticField *koBICDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager *koBICDetectorConstruction::fFieldMgr = 0;
 
-int koBICDetectorConstruction::fNofRow = 3;
-int koBICDetectorConstruction::fNofCol = 6;
+int koBICDetectorConstruction::fNofRow = 1;
+int koBICDetectorConstruction::fNofCol = 1;
 int koBICDetectorConstruction::fNofModules = fNofRow * fNofCol;
 
 koBICDetectorConstruction::koBICDetectorConstruction()
@@ -336,8 +336,9 @@ void koBICDetectorConstruction::ModuleBuild(
     
     
     G4RotationMatrix* zRot = new G4RotationMatrix;
+    zRot->rotateY(M_PI/2.*rad);
     zRot->rotateZ(M_PI/2.*rad);
-
+    
     for (int i = 0; i < fNofModules; i++) {
     moduleName = setModuleName(i);
 
