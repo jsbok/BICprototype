@@ -92,7 +92,7 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
   G4LogicalVolumeStore::GetInstance()->Clean();
   G4SolidStore::GetInstance()->Clean();
 
-  checkOverlaps = true; // 겹침 확인을 위해 true로 켜두는 것을 권장합니다.
+  checkOverlaps = false; 
 
   G4VSolid *worldSolid = new G4Box("worldBox", 10. * m, 10. * m, 10. * m);
   worldLogical = new G4LogicalVolume(worldSolid, FindMaterial("G4_Galactic"), "worldLogical");
@@ -102,34 +102,34 @@ G4VPhysicalVolume *koBICDetectorConstruction::Construct() {
   fFrontL = 1000.; 
   fTowerDepth = 700.; 
   
-  // XML 구조에 따른 파라미터 적용
+  // Fiber Intervals
   fFiber_vert_dis = 1.22; // spacing_z
   fFiber_hori_dis = 1.35; // spacing_x
   
-  // 모듈의 총 두께(X축 방향 적층) 계산: 
+  // Total Length of Detector 
   // 5 * (17.0 + 21.730) + 1 * 17.0 + 6 * 20.889 = 335.984 mm
   fModuleH = 133.19 + 146.223; // = 279.413 mm
-  fModuleW = 710.0; // 가로 폭 (필요시 수정)
+  fModuleW = 710.0; // width
   fFiberUnitH = 1.;
 
   G4double rmin = 904.485 * mm; 
   G4double rmax = 1037.675 * mm + (20.889 * 7) * mm; 
-  G4double totalLength = rmax - rmin * mm; // 70cm + 30cm
+  G4double totalLength = rmax - rmin * mm; // 
 
-// 48각 중 한 조각의 너비 계산
+// One of 48-Slices
 G4double dPhi = (360. / 48.) * deg;
-G4double dx1 = rmin * std::tan(dPhi/2.); // 안쪽 짧은 변 절반
-G4double dx2 = rmax * std::tan(dPhi/2.); // 바깥쪽 긴 변 절반
-G4double dy  = fModuleW / 2.0;           // 모듈의 두께(높이) 절반
+G4double dx1 = rmin * std::tan(dPhi/2.); // Short Side / 2
+G4double dx2 = rmax * std::tan(dPhi/2.); // Long Side / 2
+G4double dy  = fModuleW / 2.0;           // Width / 2
 
-// G4Trd 생성 (이름, x_half_small, x_half_large, y_half_small, y_half_large, z_half)
-// Geant4의 Trd는 z축을 따라 단면적이 변합니다.
+// G4Trd 생성 (name, x_half_small, x_half_large, y_half_small, y_half_large, z_half)
+// Along z-axis
 G4VSolid* moduleSolid = new G4Trd("moduleSolid", dx1, dx2, dy, dy, totalLength/2.);
 
-// 재질은 내부를 채울 것이므로 AIR 또는 Galactic(진공)으로 설정
+// Material: Galactic or Air
 ModuleLogical[0] = new G4LogicalVolume(moduleSolid, FindMaterial("G4_Galactic"), "ModuleLogical");
 
-// World에 배치
+// World Arrangement
 new G4PVPlacement(0, G4ThreeVector(0,0,0), ModuleLogical[0], "ModulePhys", worldLogical, false, 0, checkOverlaps);
   G4cout << "Step 0" << G4endl;
 
@@ -137,9 +137,9 @@ new G4PVPlacement(0, G4ThreeVector(0,0,0), ModuleLogical[0], "ModulePhys", world
 
   doFiber = true;
   doPMT = true;
-  doGlue = false;
+  doGlue = true;
 
-  // 광섬유 반경 설정 (XML 반영)
+  // Fiber Radius
   clad_S_rMax = 0.50 * mm; // EcalBarrel_FiberRadius
   core_S_rMax = 0.485 * mm; // 0.50 - 0.04 (CladdingThickness)
 
@@ -185,8 +185,7 @@ if (doPMT) {
         }
 
         for (int i = 0; i < 50; i++) {
-            // [중요] 이름을 "Module" (대문자 M)로 통일합니다. 
-            // 시스템이 "ModuleC0"을 찾고 있다면 정확히 대소문자가 일치해야 합니다.
+            // SiPM Name: "Module" + Number
             
             G4String nameLeft  = "Module" + std::to_string(2 * i);
             G4String collLeft  = "ModuleC" + std::to_string(2 * i);
@@ -201,7 +200,7 @@ if (doPMT) {
             koBICSiPMSD *SiPMSD_right = new koBICSiPMSD(nameRight, collRight, 1, fModuleProp.at(i));
             SDman->AddNewDetector(SiPMSD_right);
 
-            // PMTcathLogical에 SD 할당
+            // Assign SD to PMTcathLogical
             if (PMTcathLogical[2 * i]) {
                 PMTcathLogical[2 * i]->SetSensitiveDetector(SiPMSD_left);
             }
@@ -225,18 +224,17 @@ void koBICDetectorConstruction::ModuleBuild(
 G4Material* pbMat = FindMaterial("Lead");
     G4Material* vacMat = FindMaterial("G4_Galactic");
 
-    // 1. 엄마 사다리꼴의 치수를 그대로 가져옵니다.
-    // dx1(앞면 너비), dx2(뒷면 너비), dy(높이), dz(길이 절반)
+    // 1. Derived from Mother Trapezoid
     G4Trd* parentTrd = (G4Trd*)ModuleLogical_[0]->GetSolid();
     G4double pDx1 = parentTrd->GetXHalfLength1();
     G4double pDx2 = parentTrd->GetXHalfLength2();
     G4double pDy  = parentTrd->GetYHalfLength1() - 5;
-    G4double pDz  = parentTrd->GetZHalfLength(); // 보통 500mm
+    G4double pDz  = parentTrd->GetZHalfLength(); //
 
-    G4double currentZ = -pDz; // -500mm부터 시작
+    G4double currentZ = -pDz; // 
     int copyNo = 0;
 
-    // 2. 레이어 생성 헬퍼 (작은 사다리꼴 직접 생성)
+    // 2. Layer Production 
 auto PlaceTrdLayer = [&](G4String name, G4double thick, G4Material* mat, G4VisAttributes* vis, G4double customDy = -1.0) -> G4LogicalVolume* {
     G4double zStart = currentZ + pDz; 
     G4double zEnd   = zStart + thick;
@@ -255,7 +253,7 @@ auto PlaceTrdLayer = [&](G4String name, G4double thick, G4Material* mat, G4VisAt
                       logVol, name + "_phys", ModuleLogical_[0], false, copyNo++, checkOverlaps);
     
     currentZ += thick;
-    return logVol; // <--- 생성된 포인터를 반환!
+    return logVol; //
 };
 
 
@@ -269,7 +267,6 @@ for(int r = 0; r < 3; r++) {
     fVisAttrGray->SetColour(G4Colour(0.5, 0.5, 0.5, 1.0)); 
     fVisAttrGray->SetForceSolid(true);
     
-    // [수정] 생성된 포인터를 변수에 저장하고 벡터에 push_back 합니다.
     G4LogicalVolume* tmpPbSFIL = PlaceTrdLayer("Pb_SFIL", 21.73*mm, pbMat, fVisAttrGray);
     logicPbSFIL.push_back(tmpPbSFIL); 
 }
@@ -279,22 +276,21 @@ PlaceTrdLayer("Vac_SFIL_End", 17.0*mm, vacMat, fVisAttrBlue);
 
 G4double bulkHalfHeight = (300.0 * mm) / 2.0; 
 
-// --- Bulk 레이어 적층 ---
+// --- Bulk layers-----
 for(int r = 0; r < 7; r++) {
     fVisAttrGray->SetVisibility(true);
     fVisAttrGray->SetForceSolid(true);
     
-    // [수정] 마찬가지로 포인터를 저장하여 벡터에 담습니다.
     G4LogicalVolume* tmpPbBulk = PlaceTrdLayer("Pb_Bulk", 20.889*mm, pbMat, fVisAttrGray, bulkHalfHeight);
     logicPbBulk.push_back(tmpPbBulk);
 }
 
-    // 5. Fiber 배치 (Fiber도 Z축 방향으로 길게 뻗어야 함)
+    // 5. Fibe Arrangement 
     FiberImplement(0,  logicPbSFIL, logicPbBulk, 
                fiberUnitIntersection_, fiberCladIntersection_, fiberCoreIntersection_);
 
     // =========================================================
-    // 3. PMT 및 속성 설정
+    // 3. SiPM Property Settings
     // =========================================================
 if (doPMT) {
     G4double sipmSize = 16.0 * mm;

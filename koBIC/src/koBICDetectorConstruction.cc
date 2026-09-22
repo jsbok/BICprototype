@@ -274,11 +274,11 @@ void koBICDetectorConstruction::ModuleBuild(
     std::vector<G4LogicalVolume*> logicPbSFIL; //  SFIL(1~5)
 
     // ==============================================================================
-    // 1. [SFIL 1, 2]  Reverse Direction Arrangement (Vacuum 17.49mm -> SFIL 21.24mm)
+    // 1. [Dummy SFIL 1, 2, 3]  Reverse Direction Arrangement (Vacuum 17.49mm -> SFIL 21.24mm)
     // ==============================================================================
     G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
 
-    for(int r = 0; r < 2; r++) {
+    for(int r = 0; r < 3; r++) {
         G4double vacThick = 17.49 * mm;
         currentBoundaryZ -= vacThick; 
         G4double zCenterVac = currentBoundaryZ + (vacThick / 2.0); 
@@ -297,7 +297,7 @@ void koBICDetectorConstruction::ModuleBuild(
     }
 
     // ==============================================================================
-    // 2. [SFIL 3, 4, 5] (Bulk) Forward Direction Arrangement, 17mm Interval
+    // 2. [SFIL 6, 7] (Bulk) Forward Direction Arrangement, 17mm Interval
     // ==============================================================================
     G4double sfilThick2 = 21.24 * mm; // thickness
     G4double gapThick = 17.49 * mm;     // interval
@@ -308,7 +308,7 @@ void koBICDetectorConstruction::ModuleBuild(
     // Real Z coordinate
     G4double realBoundaryZ = originalBoundaryZ; 
 
-    for(int r = 0; r < 3; r++) {
+    for(int r = 0; r < 2; r++) {
         fVisAttrGray->SetVisibility(true);
         fVisAttrGray->SetForceSolid(true);
 
@@ -356,7 +356,7 @@ void koBICDetectorConstruction::ModuleBuild(
         G4double yPos = 0.0 * mm;
         
         // 3. Z: quotient * (0~5)
-        G4double zCenter = pDz - (30.0 * 6.0 * mm) + (30.0 * quotient * mm) + 15.0 * mm;
+        G4double zCenter = pDz - (30.0 * 6.0 * mm) - 38.73 * mm + (30.0 * quotient * mm) + 15.0 * mm;
         
         new G4PVPlacement(zRot, G4ThreeVector(xPos, yPos, zCenter), ModuleLogical_[i], moduleName,
                           Envelope, false, 100+i, checkOverlaps);
@@ -423,22 +423,22 @@ if (doSiPM) {
     };
 
     // ==============================================================================
-    // 1. [SFIL 1, 2] SiPM Arrangement (Reverse Direction)
+    // 1. [SFIL 1, 2, 3] SiPM Arrangement (Reverse Direction)
     // ==============================================================================
     G4double currentBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
 
-    for (int r = 0; r < 2; r++) {
+    for (int r = 0; r < 3; r++) {
         currentBoundaryZ -= 17.49 * mm; // Vac
         G4double sfilThick = 21.24 * mm;
         currentBoundaryZ -= sfilThick;
         G4double zCenterSfil = currentBoundaryZ + (sfilThick / 2.0);
 
-        // SFIL 1, 2 : (realZ == origZ)
-        PlaceSiPMsOnLayer(zCenterSfil, zCenterSfil);
+        // SFIL 1, 2, 3 : (realZ == origZ)
+     //   PlaceSiPMsOnLayer(zCenterSfil, zCenterSfil);
     }
 
     // ==============================================================================
-    // 2. [SFIL 3, 4, 5] SiPM Arrangement (Forward Direction, 17mm Gap)
+    // 2. [SFIL 4, 5] SiPM Arrangement (Forward Direction, 17mm Gap)
     // ==============================================================================
     G4double sfilThick2 = 21.24 * mm;
     G4double gapThick = 17.49 * mm;
@@ -446,7 +446,7 @@ if (doSiPM) {
     G4double originalBoundaryZ = pDz - (30.0 * 6.0 * mm) - (38.73 * 3.0 * mm);
     G4double realBoundaryZ = originalBoundaryZ;
 
-    for (int r = 0; r < 3; r++) {
+    for (int r = 0; r < 2; r++) {
         G4double originalZCenter = originalBoundaryZ + (sfilThick2 / 2.0);
         G4double realZCenter = realBoundaryZ + (sfilThick2 / 2.0);
 
@@ -461,7 +461,7 @@ if (doSiPM) {
         }
     }
 
- G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm) ; // Bulk 
+ G4double bulkBoundaryZ = pDz - (30.0 * 6.0 * mm) - 38.73*mm ; // Bulk 
 
     // X (+30, 0, -30)
     std::vector<G4double> xPatterns = {30.0 * mm, 0.0 * mm, -30.0 * mm};
@@ -561,7 +561,7 @@ void koBICDetectorConstruction::FiberImplement(
     fWhich = !fWhich;
   }
 
-    if (!doFiber) return;
+ //   if (!doFiber) return;
 
     fVisAttrSkyBlue = new G4VisAttributes(G4Colour(0.5, 0.8, 0.9, 0.4)); 
     fVisAttrSkyBlue->SetVisibility(true);
@@ -783,6 +783,7 @@ void koBICDetectorConstruction::FiberImplement(
     };
 
     // [SFIL Layers Loop]
+if (doFiber) {
     for (auto pbLog : logicPbSFIL) {
         G4LogicalVolume* glueLog_SFIL = new G4LogicalVolume(fiberGlue_SFIL, FindMaterial("Glue"), "fGlue_SFIL_L");
         G4LogicalVolume* cladLog_SFIL = new G4LogicalVolume(fiberClad_SFIL, FindMaterial("PMMA"), "fClad_SFIL_L");
@@ -802,4 +803,5 @@ void koBICDetectorConstruction::FiberImplement(
 
         FillFibersInMother(pbLog, 21.24 * mm, glueLog_SFIL, 700.0 * mm, 0.233 * mm);
     }
+}
 }
