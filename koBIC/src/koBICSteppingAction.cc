@@ -268,9 +268,9 @@ G4double totalLength = rmax - rmin;
 G4double pDz = totalLength / 2.0;
 G4double z_shifted = z + pDz; // 
 
-G4double boxStartZ = (totalLength - 180.0) * mm;// 
+G4double boxStartZ = (totalLength - 180.0 - 38.73) * mm;// 
 
-G4double zStart = pDz - 180.0 * mm;
+G4double zStart = pDz - (180.0 + 38.73) * mm;
 G4double zEnd   = pDz;
 
 if (z >= zStart && z <= zEnd) {
@@ -285,7 +285,7 @@ if (z >= zStart && z <= zEnd) {
     } else if (x > 15.0 * mm) {
 	    colIdx = 2; // +30mm 
     }
-    finalModuleNum = 10 + 5*layers + (layerIdx * 3) + colIdx;
+    finalModuleNum = 10 + (layerIdx * 3) + colIdx;
 }
 //}
 
@@ -308,15 +308,15 @@ if (volName.contains("SFIL")) {
 
         // 2. Verify z range [zStart, zStart + thick]
         if (z_shifted >= zStart_SFIL1 && z_shifted <= zStart_SFIL1 + thick) {
-            layerIdx = 0; zStart = zStart_SFIL1;
+//            layerIdx = 0; zStart = zStart_SFIL1;
         } else if (z_shifted >= zStart_SFIL2 && z_shifted <= zStart_SFIL2 + thick) {
-            layerIdx = 1; zStart = zStart_SFIL2;
+//            layerIdx = 1; zStart = zStart_SFIL2;
         } else if (z_shifted >= zStart_SFIL3 && z_shifted <= zStart_SFIL3 + thick) {
-            layerIdx = 2; zStart = zStart_SFIL3;
+            layerIdx = 0; zStart = zStart_SFIL3;
         } else if (z_shifted >= (zStart_SFIL3 + 38.73*mm) && z_shifted <= (zStart_SFIL3 + 38.73*mm) + thick) {
-            layerIdx = 3; zStart = zStart_SFIL3 + 38.73*mm;
+            layerIdx = 1; zStart = zStart_SFIL3 + thick;
         } else if (z_shifted >= (zStart_SFIL3 + 77.46*mm) && z_shifted <= (zStart_SFIL3 + 77.46*mm) + thick) {
-            layerIdx = 4; zStart = zStart_SFIL3 + 77.46*mm;
+//            layerIdx = 4; zStart = zStart_SFIL3 + 77.46*mm;
         }
 
         if (layerIdx == -1) return;

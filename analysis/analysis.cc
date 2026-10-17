@@ -19,7 +19,7 @@
 int main(int argc, char* argv[]) {
 //  TString filename1 = "/u/user/changhui/koBIC2026/BICprototype/rootfiles/3SF1B_e-_1_GeV_2026/root/R3SF1B_e-_1_GeV_2026_500";
   TString filename2 = "/u/user/changhui/koBIC2025/BICprototype2025/rootfiles/4by8_e-_7_GeV_2025/root/R4by8_epi_7_GeV_2025_20M";
-  TString filename1 = "/home/changhui/work/BICprototype2026/TBCERN2026b/build/koBIC/_0";
+  TString filename1 = "/home/changhui/work/BICprototype2026/BICprototype2026/build/koBIC/_0";
 
   int file1=1; int file2=0; // File loop on/off
 
@@ -266,7 +266,7 @@ for (int i2=0; i2<24; i2++){
 
 }
  for (int ii=1; ii<44; ii++){
-     THitss->SetBinContent(ii,Edep_Numm[ii-1]/10);
+     THitss->SetBinContent(ii,Edep_Numm[ii-1]/4);
     }
 
   std::cout << "Module total1 = " << THitss->Integral() << std::endl;
@@ -345,7 +345,7 @@ tHit_S->Write();tHit_S2->Write();tHit_S3->Write();tHit_S4->Write();tHit_S5->Writ
 outputFile1->Close();   
 */
 
-   TFile *outputFile2 = new TFile("/home/changhui/work/BICprototype2026/TBCERN2026b/build/analysis/1GeV_hist.root", "RECREATE");
+   TFile *outputFile2 = new TFile("/home/changhui/work/BICprototype2026/BICprototype2026/build/analysis/1GeV_hist.root", "RECREATE");
 tEdep->Write(); tEdepC->Write(); tHit_S->Write();
 for (int jjj=1; jjj<44; jjj++){ 
     Edep_M[jjj]->Write();

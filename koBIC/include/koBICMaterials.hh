@@ -23,6 +23,7 @@ private:
   G4Material* fAir;
   G4Material* fFluoPoly;
   G4Material* fPMMA;
+  G4Material* fAcrylic;
   G4Material* fPS;
   G4Material* fCu;
   G4Material* fW;
@@ -32,11 +33,14 @@ private:
   G4Material* fAl;
   G4Material* fGlass;
   G4Material* fGelatin;
+  G4Material* fEJ560;
+  G4Material* fEpoxyResin;
   G4Material* fMirror;
   G4Material* fBlackpaint;
   G4OpticalSurface* fSiPMSurf;
   G4OpticalSurface* fFilterSurf;
   G4OpticalSurface* fMirrorSurf;
+  G4OpticalSurface* fAlSurf;
 };
 
 #endif

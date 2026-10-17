@@ -30,8 +30,8 @@ using namespace std;
 G4ThreadLocal koBICMagneticField *koBICDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager *koBICDetectorConstruction::fFieldMgr = 0;
 
-int koBICDetectorConstruction::fNofRow = 1;
-int koBICDetectorConstruction::fNofCol = 1;
+int koBICDetectorConstruction::fNofRow = 3;
+int koBICDetectorConstruction::fNofCol = 6;
 int koBICDetectorConstruction::fNofModules = fNofRow * fNofCol;
 
 koBICDetectorConstruction::koBICDetectorConstruction()

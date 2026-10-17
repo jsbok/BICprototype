@@ -23,8 +23,10 @@
 using namespace std;
 
 class koBICMagneticField;
-
+class koBICLightguide;
 class koBICDetectorConstruction : public G4VUserDetectorConstruction {
+
+
 public:
   koBICDetectorConstruction();
   virtual ~koBICDetectorConstruction();
@@ -97,6 +99,7 @@ private:
   G4bool doFiber;
   G4bool doSiPM;
   G4bool doGlue;
+  G4bool doLG;
 
   dimensionCalc *dimCalc;
 
@@ -164,6 +167,8 @@ private:
   G4LogicalVolume *worldLogical;
   G4LogicalVolume *spaceLogical;
   G4String setModuleName(int i) { return std::to_string(i); }
+
+  koBICLightguide* fLG = nullptr;
 };
 
 #endif
