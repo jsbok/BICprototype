@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/koBIC.dir/koBIC.cc.o"
+  "CMakeFiles/koBIC.dir/koBIC.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/FastOpTransportModel.cc.o"
+  "CMakeFiles/koBIC.dir/src/FastOpTransportModel.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/dimensionCalc.cc.o"
+  "CMakeFiles/koBIC.dir/src/dimensionCalc.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICActionInitialization.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICActionInitialization.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICCellParameterisation.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICCellParameterisation.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICDetectorConstruction.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICDetectorConstruction.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICEventAction.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICEventAction.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICFilterParameterisation.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICFilterParameterisation.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICMagneticField.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICMagneticField.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICMaterials.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICMaterials.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICMirrorParameterisation.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICMirrorParameterisation.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICPrimaryGeneratorAction.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICPrimaryGeneratorAction.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICRunAction.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICRunAction.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICSiPMHit.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICSiPMHit.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICSiPMSD.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICSiPMSD.cc.o.d"
+  "CMakeFiles/koBIC.dir/src/koBICSteppingAction.cc.o"
+  "CMakeFiles/koBIC.dir/src/koBICSteppingAction.cc.o.d"
+  "koBIC"
+  "koBIC.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/koBIC.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

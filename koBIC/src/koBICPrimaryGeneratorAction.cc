@@ -33,11 +33,11 @@ koBICPrimaryGeneratorAction::koBICPrimaryGeneratorAction(G4int seed, G4bool useH
 void koBICPrimaryGeneratorAction::initPtcGun() {
   fTheta = -0.01111;
   fPhi = 0.;
-  fRandX = 0.*mm;
-  fRandZ = 10.*mm;
+  fRandX = 13.*mm;
+  fRandZ = 13.*mm;
   fX_0 = 0.;
   fY_0 = 0.;
-  fZ_0 = -1000.;
+  fZ_0 = 60.;
   fParticleGun = new G4ParticleGun(1);
 
   G4ParticleTable* particleTable = G4ParticleTable::GetParticleTable();

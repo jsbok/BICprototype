@@ -1,0 +1,11 @@
+/u/user/changhui/koBIC2026/TBCERN2026b/install/lib/librootIO.so
+/u/user/changhui/koBIC2026/TBCERN2026b/install/lib/librootIO_rdict.pcm
+/u/user/changhui/koBIC2026/TBCERN2026b/install/lib/librootIO.rootmap
+/u/user/changhui/koBIC2026/TBCERN2026b/install/bin/koBIC
+/u/user/changhui/koBIC2026/TBCERN2026b/install/./gui.mac
+/u/user/changhui/koBIC2026/TBCERN2026b/install/./icons.mac
+/u/user/changhui/koBIC2026/TBCERN2026b/install/./init.mac
+/u/user/changhui/koBIC2026/TBCERN2026b/install/./init_vis.mac
+/u/user/changhui/koBIC2026/TBCERN2026b/install/./run_ele.mac
+/u/user/changhui/koBIC2026/TBCERN2026b/install/./vis.mac
+/u/user/changhui/koBIC2026/TBCERN2026b/install/bin/analysis

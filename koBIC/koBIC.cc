@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
   physicsList->RegisterPhysics(opticalPhysics);
 
   G4FastSimulationPhysics* fastsimPhysics = new G4FastSimulationPhysics();
-  fastsimPhysics->ActivateFastSimulation("opticalphoton");
+  fastsimPhysics->ActivateFastSimulation("opticalphoton");l
   physicsList->RegisterPhysics(fastsimPhysics);
 
   runManager->SetUserInitialization(physicsList);

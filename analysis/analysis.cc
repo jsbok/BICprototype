@@ -17,9 +17,9 @@
 #include <string>
 
 int main(int argc, char* argv[]) {
-//  TString filename1 = "/u/user/changhui/koBIC2026/BICprototype/rootfiles/3SF1B_e-_1_GeV_2026/root/R3SF1B_e-_1_GeV_2026_500";
+  TString filename1 = "/u/user/changhui/koBIC2026/TBCERN2026b/rootfiles/2SF+BK_e-_500_MeV_final/root/R2SF+BK_e-_500_MeV_final_3M";
   TString filename2 = "/u/user/changhui/koBIC2025/BICprototype2025/rootfiles/4by8_e-_7_GeV_2025/root/R4by8_epi_7_GeV_2025_20M";
-  TString filename1 = "/home/changhui/work/BICprototype2026/BICprototype2026/build/koBIC/_0";
+//  TString filename1 = "/home/changhui/work/BICprototype2026/BICprototype2026/build/koBIC/_0";
 
   int file1=1; int file2=0; // File loop on/off
 
@@ -44,9 +44,9 @@ int main(int argc, char* argv[]) {
   TH1F* tEdep2 = new TH1F("totEdep2",";MeV;Evt",100,low*80.,high*130.);
   tEdep2->Sumw2(); tEdep2->SetLineColor(kBlue); tEdep2->SetLineWidth(2);
 
-  TH1F* tHit_S = new TH1F("Hit_S","; reconstructed E (MeV);Evt",150, 0,60000);
+  TH1F* tHit_S = new TH1F("Hit_S","; reconstructed E (MeV);Evt",150, 0, high*200.);
   tHit_S->Sumw2(); tHit_S->SetLineColor(2); tHit_S->SetLineWidth(2);
-  TH1F* tHit_S2 = new TH1F("Hit_S2","; reconstructed E (MeV);Evt",300,0,21000);
+  TH1F* tHit_S2 = new TH1F("Hit_S2","; reconstructed E (MeV);Evt",300,0,high*200);
   tHit_S2->Sumw2(); tHit_S2->SetLineColor(kBlue); tHit_S2->SetLineWidth(2);
 
   TH1F* Edep_M[44];
@@ -56,9 +56,9 @@ for (int i =1; i < 44; i++){
 
   TH1F* Nhits_M_L[44]; TH1F* Nhits_M_R[44];
 for (int j =1; j < 44; j++){
-  Nhits_M_L[j] = new TH1F(Form("Nhits_L_M%d",j),"; Reconstructed E (MeV); Evt",0.3*inE,0,10*inE);
+  Nhits_M_L[j] = new TH1F(Form("Nhits_L_M%d",j),"; Reconstructed E (MeV); Evt", 100,0,0.5*inE);
   Nhits_M_L[j]->Sumw2(); Nhits_M_L[j]->SetLineColor(3); Nhits_M_L[j]->SetLineWidth(2);
-  Nhits_M_R[j] = new TH1F(Form("Nhits_R_M%d",j),"; Reconstructed E (MeV); Evt",0.3*inE,0,10*inE);
+  Nhits_M_R[j] = new TH1F(Form("Nhits_R_M%d",j),"; Reconstructed E (MeV); Evt", 100,0,0.5*inE);
   Nhits_M_R[j]->Sumw2(); Nhits_M_R[j]->SetLineColor(3); Nhits_M_R[j]->SetLineWidth(2);
 }
 
@@ -93,24 +93,24 @@ float Edep_Num[43] = {0};float Edep_Num2[43] = {0}; float Edep_Numm[43] = {0};
 
 if (file1==1) {
 
- TFile *file = new TFile("/home/changhui/work/BICprototype2026/TBCERN2026b/build/analysis/1GeV_tree.root", "RECREATE");
+ TFile *file = new TFile("/u/user/changhui/koBIC2026/TBCERN2026b/build/analysis/2SF+BK_e-_500_MeV_tree.root", "RECREATE");
  TTree *tree = new TTree("Ttree", "Edep and Nhits ");
 // tree->SetBranchAddress("edep.Edep", &edep);
 // tree->SetBranchAddress("edep.Module", &moduleN);
 
     Float_t edep1[43]={0};  // 24개의모듈 데이터를 저장
     Int_t moduleN_E[43]={0} ; Int_t moduleN_H[43]={0} ; Float_t Nhits_L[43]={0}; Float_t Nhits_R[43]={0}; Float_t Core_E[43]={0};
-    tree->Branch("edep1", edep1, "edep1[24]/F");
-    tree->Branch("moduleN_E",moduleN_E, "moduleN_E[24]/I");
-    tree->Branch("moduleN_H",moduleN_H, "moduleN_H[24]/I");
-    tree->Branch("Core_E", Core_E, "Core_E[24]/F");
-    tree->Branch("Nhits_L", Nhits_L, "Nhits_L[24]/F");
-    tree->Branch("Nhits_R", Nhits_R, "Nhits_R[24]/F");
+    tree->Branch("edep1", edep1, "edep1[43]/F");
+    tree->Branch("moduleN_E",moduleN_E, "moduleN_E[43]/I");
+    tree->Branch("moduleN_H",moduleN_H, "moduleN_H[43]/I");
+    tree->Branch("Core_E", Core_E, "Core_E[43]/F");
+    tree->Branch("Nhits_L", Nhits_L, "Nhits_L[43]/F");
+    tree->Branch("Nhits_R", Nhits_R, "Nhits_R[43]/F");
 
     float totHit = 0; float nHits[43]= {0};
   unsigned int entries = drInterface->entries();
   while (drInterface->numEvt() < entries) {
-    if (drInterface->numEvt() % 10 == 0) printf("1st analyzing %dth event ...\n", drInterface->numEvt());
+    if (drInterface->numEvt() % 1000 == 0) printf("1st analyzing %dth event ...\n", drInterface->numEvt());
 
     koBICInterface::koBICEventData drEvt;
     drInterface->read(drEvt);
@@ -179,13 +179,13 @@ for (int j=1; j<44; j++){
      }//SiPM loop
     }//tower loop
 
-tHit_S->Fill(nHitS);  totHit += nHitS;
+tHit_S->Fill(nHitS/17.6);  totHit += nHitS;
 
   for (int j=1; j<44; j++){
 //    nHitS += Nhits_Numm_L[j-1]  ;
 //    nHitS += Nhits_Numm_R[j-1] ;
-    Nhits_M_L[j]->Fill(Nhits_Numm_L[j-1]);
-    Nhits_M_R[j]->Fill(Nhits_Numm_R[j-1]);
+    Nhits_M_L[j]->Fill(Nhits_Numm_L[j-1]/17.6);  
+    Nhits_M_R[j]->Fill(Nhits_Numm_R[j-1]/17.6);
     Core_E[j-1]=EdepC_Num[j-1];
     Nhits_L[j-1]=Nhits_Numm_L[j-1];
     Nhits_R[j-1]=Nhits_Numm_R[j-1];
@@ -345,7 +345,7 @@ tHit_S->Write();tHit_S2->Write();tHit_S3->Write();tHit_S4->Write();tHit_S5->Writ
 outputFile1->Close();   
 */
 
-   TFile *outputFile2 = new TFile("/home/changhui/work/BICprototype2026/BICprototype2026/build/analysis/1GeV_hist.root", "RECREATE");
+   TFile *outputFile2 = new TFile("/u/user/changhui/koBIC2026/TBCERN2026b/build/analysis/2SF+BK_e-_500_MeV_hist.root", "RECREATE");
 tEdep->Write(); tEdepC->Write(); tHit_S->Write();
 for (int jjj=1; jjj<44; jjj++){ 
     Edep_M[jjj]->Write();

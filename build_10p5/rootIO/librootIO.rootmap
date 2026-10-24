@@ -1,0 +1,14 @@
+{ decls }
+namespace std {  }
+
+[ librootIO.so ]
+# List of selected classes
+class koBICInterface
+class koBICInterface::koBICEdepData
+class koBICInterface::koBICEventData
+class koBICInterface::koBICGenData
+class koBICInterface::koBICLeakageData
+class koBICInterface::koBICTowerData
+class koBICInterface::threeVector
+class tuple<float,float,float>
+header koBICInterface.h
