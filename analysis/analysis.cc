@@ -179,7 +179,7 @@ for (int j=1; j<44; j++){
      }//SiPM loop
     }//tower loop
 
-tHit_S->Fill(nHitS/17.6);  totHit += nHitS;
+tHit_S->Fill(nHitS);  totHit += nHitS;
 
   for (int j=1; j<44; j++){
 //    nHitS += Nhits_Numm_L[j-1]  ;
@@ -266,7 +266,7 @@ for (int i2=0; i2<24; i2++){
 
 }
  for (int ii=1; ii<44; ii++){
-     THitss->SetBinContent(ii,Edep_Numm[ii-1]/4);
+     THitss->SetBinContent(ii,Edep_Numm[ii-1]/10000);
     }
 
   std::cout << "Module total1 = " << THitss->Integral() << std::endl;

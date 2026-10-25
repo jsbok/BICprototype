@@ -672,7 +672,7 @@ void koBICDetectorConstruction::ModuleBuild(
       for (int xIdx = 0; xIdx < 3; xIdx++) {          // 3 X (+30, 0, -30)
 
         // ID Assignment (25 ~ 42)
-        int s = 10 + arrayIdx; 
+        int s = 25 + arrayIdx; 
 
         G4String nameCellL = "ModuleC_Cell" + std::to_string(2 * s);
         G4String nameCellR = "ModuleC_Cell" + std::to_string(2 * s + 1);

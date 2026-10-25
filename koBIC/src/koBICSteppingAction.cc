@@ -285,7 +285,7 @@ if (z >= zStart && z <= zEnd) {
     } else if (x > 15.0 * mm) {
 	    colIdx = 2; // +30mm 
     }
-    finalModuleNum = 10 + (layerIdx * 3) + colIdx;
+    finalModuleNum = 25 + (layerIdx * 3) + colIdx;
 }
 //}
 
